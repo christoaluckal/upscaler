@@ -1,6 +1,5 @@
 import os
-
-from numpy.core.fromnumeric import resize
+import numpy as np
 import split
 import join
 import glob
@@ -23,7 +22,15 @@ def modify_image(original_folder,original_list,type):
         height,width,_ = image.shape
         if type=='resize':
             modified = cv2.resize(image,(width//4,height//4),interpolation = cv2.INTER_AREA)
-            cv2.imwrite(original_folder+'resized_'+x,modified)
+            cv2.imwrite('modded/'+'{}_'.format(type)+x,modified)
+        elif type=='blur':
+            modified = cv2.GaussianBlur(image,(5,5),cv2.BORDER_DEFAULT)
+            cv2.imwrite('modded/'+'{}_'.format(type)+x,modified)
+        elif type=='sharpen':
+            kernel = np.array([[-1,-1,-1], [-1,3,-1], [-1,-1,-1]])
+            modified = cv2.filter2D(image, -1, kernel)
+            cv2.imwrite('modded/'+'{}_'.format(type)+x,modified)
+
     # pass
 
 
@@ -36,7 +43,7 @@ def run_upscaler(split_output,upscaled_output):
     os.chdir('../')
     return
 
-def create_temp_folders():
+def create_temp_folders(flag):
     if not os.path.exists('split_output'):
         os.mkdir('./split_output')
     else:
@@ -49,14 +56,26 @@ def create_temp_folders():
         os.mkdir('./upscaled_big')
     else:
         clear_dir('upscaled_big/')
+    if flag is True:
+        if not os.path.exists('modded'):
+            os.mkdir('./modded')
 
 
 original_folder = args[0]
+try:
+    modification = args[1]
+    create_temp_folders(True)
+except Exception:
+    modification = None
+    create_temp_folders(False)
 # output_folder = args[1]
 
+
 image_list = os.listdir(original_folder)
-# image_list = modify_image(original_folder,image_list,'resize')
-create_temp_folders()
+if modification is not None:
+    modify_image(original_folder,image_list,modification)
+    image_list = os.listdir('./modded')
+    original_folder = 'modded/'
 
 for x in image_list:
     start = time.time()
