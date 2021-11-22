@@ -1,0 +1,3 @@
+[submodule "Fast-SRGAN"]
+	path = Fast-SRGAN
+	url = https://github.com/HasnainRaz/Fast-SRGAN.git
