@@ -6,10 +6,10 @@ import glob
 import time
 import sys
 import cv2
+import custom_infer
 
 args = sys.argv[1:]
 
-done = open('done.txt','a')
 
 def clear_dir(dirname):
     files = glob.glob(dirname+'*')
@@ -76,18 +76,19 @@ if modification is not None:
     modify_image(original_folder,image_list,modification)
     image_list = os.listdir('./modded')
     original_folder = 'modded/'
-
+start = time.time()
 for x in image_list:
-    start = time.time()
     # Split the larger image into smaller 96x96 images
     vsteps,hsteps = split.split_96(original_folder+x,'split_output/')
     # This function runs the inference code and generates the 384x384 upscaled image for the corresponding 96x96 image
-    run_upscaler('split_output','split_upscaled')
+    # run_upscaler('split_output','split_upscaled')
+    custom_infer.infer('split_output','split_upscaled')
     # The upscaler scaled all 96x96 images into 384x384. Since they all belong to one original image, we stitch the 384x384 image to make the larger image
     join.join_96(vsteps,hsteps,'split_upscaled','upscaled_big')
     # Delete the contents of the temp folder
     clear_dir('split_output/')
     clear_dir('split_upscaled/')
-    end = time.time()
-    print("FINISHED:",x," in {}s".format(end-start))
-    done.write((x+'\n'))
+
+end = time.time()
+print("\n\n\n")
+print("FINISHED {} files in {}s".format(len(image_list),end-start))

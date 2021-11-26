@@ -27,13 +27,16 @@ exif_list = sorted([exif_loc+x for x in os.listdir(exif_loc)])
 noexif_list = sorted([noexif_loc+x for x in os.listdir(noexif_loc)])
 
 start = time.time()
+# count = 1
 for x,y in zip(exif_list,noexif_list):
     file_x = x.split('/')[-1]
     file_y = y.split('/')[-1]
     if file_x[0:8] == file_y[0:8]:
+        # print(count)
+        # count+=1
         copy_exif(x,y)
-        print("Done with: ",file_x)
+        # print("Done with: ",file_x)
 
 end = time.time()
 
-print("Total time for {} files is {}s".format(len(exif_list),(end-start)))
+print("Total time for Exif copying of {} files is {}s".format(len(exif_list),(end-start)))

@@ -1,0 +1,4 @@
+21k FINISHED 264 files in 28156.335834026337s
+21k Total time for Exif copying of 264 files is 2571.767647743225s
+
+5k FINISHED 314 files in 2190.6703803539276s
