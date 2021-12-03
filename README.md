@@ -8,4 +8,5 @@ The motivation behind this code is to test if Orthomosaics,DEMs,DTMs generated t
 
 
 ### To DO ###
-1.  Call the SRGAN code through a method and not a subprocess
+1.  [X] Call the SRGAN code through a method and not a subprocess
+2.  Modify/Train the SRGAN model for custom images
