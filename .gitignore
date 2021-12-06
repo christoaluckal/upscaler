@@ -3,6 +3,7 @@ split_output
 upscaled_big
 split_upscaled
 *.tif
+*.npy
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
