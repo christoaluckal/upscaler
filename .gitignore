@@ -2,6 +2,7 @@ testing
 split_output
 upscaled_big
 split_upscaled
+*.tif
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
