@@ -3,7 +3,10 @@ split_output
 upscaled_big
 split_upscaled
 *.tif
-*.npy
+downscaled_upscaled_Ortho.png
+difference_array.npy
+original_Ortho.png
+IP_testing
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
