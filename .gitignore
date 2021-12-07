@@ -7,6 +7,7 @@ downscaled_upscaled_Ortho.png
 difference_array.npy
 original_Ortho.png
 IP_testing
+sift
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
