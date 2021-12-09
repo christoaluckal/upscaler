@@ -167,7 +167,7 @@ def validate_dems(dem1,dem2):
     offseted = offset_data(small_dem_data,offset,y_dash,x_dash)
     make_image(offseted,'OFFSET.png','')
     image_diff,diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
-    cv2.imwrite('batch_save.png',image_diff)
+    cv2.imwrite('bracketed_save.png',image_diff)
 
 
 validate_dems(dem1,dem2)

@@ -31,8 +31,9 @@ def match(img1,img2,name):
 
 good_list = []
 
-og_folder = 'sift/og_parts'
-alt_folder = 'sift/alt_parts'
+og_folder = '/home/caluckal/Desktop/Github/upscaler/validation/IP_testing/ISR/sift_results/og_parts'
+alt_folder = '/home/caluckal/Desktop/Github/upscaler/validation/IP_testing/ISR/sift_results/alt_parts'
+
 
 
 og_list = sorted([x for x in os.listdir(og_folder) if x.endswith('.jpg')])
@@ -43,16 +44,17 @@ name_list = []
 for x in og_list:
     names = x.split('_')
     name = names[2]+'_'+names[3]
-    if 'alt_Ortho_'+name+'_.jpg' in alt_list:
-        match_list.append([x,'alt_Ortho_'+name+'_.jpg'])
+    if 'alt_parts_'+name+'_.jpg' in alt_list:
+        match_list.append([x,'alt_parts_'+name+'_.jpg'])
 
 for x in match_list:
     names = x[0].split('_')
     name = names[2]+'_'+names[3]
-    good_list.append(match(og_folder+'/'+x[0],alt_folder+'/'+x[1],'sift/match/'+name))
+    good_list.append(match(og_folder+'/'+x[0],alt_folder+'/'+x[1],'/home/caluckal/Desktop/Github/upscaler/validation/IP_testing/ISR/sift_results/match/'+name))
     name_list.append(name)
 
-match_file = open('sift/match_file.txt','w+')
+match_file = open('/home/caluckal/Desktop/Github/upscaler/validation/IP_testing/ISR/sift_results/match_list.txt','w+')
+
 
 for x,y in zip(good_list,name_list):
     if x is not None:

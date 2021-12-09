@@ -3,6 +3,7 @@ split_output
 upscaled_big
 split_upscaled
 *.tif
+downscaled_upscaled_*_Ortho.png
 downscaled_upscaled_Ortho.png
 difference_array.npy
 original_Ortho.png

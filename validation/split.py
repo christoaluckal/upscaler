@@ -128,4 +128,4 @@ def breakImage(img_name,op):
 
 
 # breakImage('/home/caluckal/Desktop/Github/upscaler/validation/downscaled_upscaled_Ortho.png','sift/alt_Ortho')
-breakImage('/home/caluckal/Desktop/Github/upscaler/validation/original_Ortho.png','sift/og_parts/og_Ortho')
+breakImage('/home/caluckal/Desktop/Github/upscaler/validation/original_Ortho.png','/home/caluckal/Desktop/Github/upscaler/validation/IP_testing/ISR/sift_results/og_parts')
