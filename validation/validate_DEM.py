@@ -141,8 +141,9 @@ def get_difference(array1,array2,height,width):
                     color = np.array([0,255,138])
                 else:
                     color = np.array([0,255,0])
+                difference[x][y] = dif
             image[x][y]=color
-            difference[x][y] = dif
+            
     return image,difference
 
 import sys
