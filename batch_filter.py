@@ -25,4 +25,4 @@ def downscale(folder,image,factor,out):
 
 for x in image_list:
     # sharpen(folder+x)
-    downscale(folder,x,4,out_folder)
+    downscale(folder,x,2,out_folder)

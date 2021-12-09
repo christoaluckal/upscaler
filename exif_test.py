@@ -33,6 +33,7 @@ for x,y in zip(exif_list,noexif_list):
     file_y = y.split('/')[-1]
     if file_x[0:8] == file_y[0:8]:
         # print(count)
+        # print(file_x,file_y)
         # count+=1
         copy_exif(x,y)
         # print("Done with: ",file_x)
