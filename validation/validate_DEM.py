@@ -2,6 +2,7 @@ from osgeo import gdal
 import numpy as np
 import cv2
 from sklearn.preprocessing import normalize
+import math
 
 def getdata(dem1_path,dem2_path):
     dem1_height,dem1_width = cv2.imread(dem1_path,-1).shape
@@ -34,24 +35,17 @@ def getdata(dem1_path,dem2_path):
     return (big_dem,big_height,big_width),(small_dem,small_height,small_width)
     # cv2.imwrite('/home/caluckal/Desktop/Github/elevation-infer/validation/test.png',dem_data)
 
-def getfirstvalid(array,height,width):
-    try:
-        for x in range(height):
-            for y in range(width):
-                if array[x][y] == -32767.0:
-                    print(array[x][y])
-                    raise Exception
-    except Exception:
-        return (x,y)
-
 box_list_sel = []
+range_px = []
+scale = 1
 
 def draw_rectangle_with_drag(event, x, y, flags, param):
+    global scale
     if event == cv2.EVENT_LBUTTONDOWN:
-        box_list_sel.append((4*x,4*y))
+        box_list_sel.append((scale*x,scale*y))
         print(x,y)
 
-def selector(image_og):
+def selector(image_og,scale):
     '''
     Function to display the image with contours and select and normalize the clicked coordinates
 
@@ -65,7 +59,7 @@ def selector(image_og):
     img_og_shape = image_og.shape
     print(img_og_shape)
     # We downscale the original image to be able to show it in a window. This definitely leads to a ~5% error in pixel calculations
-    img_disp = cv2.resize(image_og,(img_og_shape[1]//4,img_og_shape[0]//4))
+    img_disp = cv2.resize(image_og,(img_og_shape[1]//scale,img_og_shape[0]//scale))
     # Pixel location storage    
     cv2.namedWindow(winname = "Downscaled Sub-Image")
     cv2.setMouseCallback("Downscaled Sub-Image", 
@@ -84,9 +78,11 @@ def selector(image_og):
 
 def tri_sel(image1,image2):
     count = 0
+    global scale
+    scale = 1
     while count<3:
-        selector(image1)
-        selector(image2)
+        selector(image1,1)
+        selector(image2,1)
         count+=1
 
     x_avg = (box_list_sel[1][0]-box_list_sel[0][0])+(box_list_sel[3][0]-box_list_sel[2][0])+(box_list_sel[5][0]-box_list_sel[4][0])
@@ -94,6 +90,8 @@ def tri_sel(image1,image2):
 
     y_avg = (box_list_sel[1][1]-box_list_sel[0][1])+(box_list_sel[3][1]-box_list_sel[2][1])+(box_list_sel[5][1]-box_list_sel[4][1])
     y_avg = y_avg//3
+
+    scale = 4
 
     return (x_avg,y_avg)
 
@@ -119,6 +117,38 @@ def normalize(x,min,max,a,b):
     norm = int(a+(b-a)*((x-min)/(max-min)))
     return norm
 
+def flat(array1,array2,range_list):
+    x_min,y_min = range_list[0][0],range_list[0][1]
+    x_max,y_max = range_list[1][0],range_list[1][1]
+    flat1 = []
+    flat2 = []
+    for y in range(y_min,y_max):
+        for x in range(x_min,x_max):
+            if (array1[y][x]!=-32767) and (array2[y][x]!=-32767):
+                flat1.append(array1[y][x])
+                flat2.append(array2[y][x])
+            else:
+                pass
+            #     flat1.append(big)
+            # if (array2[y][x]!=-32767):
+            #     flat2.append(array2[y][x])
+            # else:
+            #     flat2.append(big)
+    return flat1,flat2
+
+def RMSE(array1,array2):
+    from sklearn.metrics import mean_squared_error as mse
+    # sum = 0
+    # for x in range(0,len(array1)):
+    #     sum = sum + pow((array1[x]-array2[x]),2)
+    # rmse = math.sqrt(sum/len(array1))
+    mse_val = mse(array1,array2)
+    rmse = math.sqrt(mse_val)
+    return rmse
+
+def PSNR(array1,rmse):
+    psnr = 20*math.log10(np.max(array1)/rmse)
+    return psnr
 
 # %%
 def get_difference(array1,array2,height,width):
@@ -155,6 +185,27 @@ def make_image(image_array,name,out):
     image_array = np.array(image_array).astype(np.int8)
     cv2.imwrite(out+name,image_array)
 
+def get_min(array):
+    min_t = 0
+    for x in range(0,len(array)):
+        for y in range(0,len(array[0])):
+            val = array[x][y]
+            # print(val)
+            if val!=-32767:
+               if val < min_t:
+                    min_t = array[x][y]
+
+    return min_t
+
+def SSIM(img,img_noise,min_v,max_v):
+    # img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+    # img_noise = cv2.cvtColor(img_noise,cv2.COLOR_BGR2GRAY)
+
+    from skimage.metrics import structural_similarity as ssim
+    ssim_noise = ssim(img, img_noise,
+                  data_range=max_v - min_v)
+    return ssim_noise
+
 def validate_dems(dem1,dem2):
     big_data,small_data = getdata(dem1,dem2)
     big_dem_data,big_dem_height,big_dem_width = big_data
@@ -164,10 +215,32 @@ def validate_dems(dem1,dem2):
     big_image = cv2.imread('BIG_DEM.png')
     small_image = cv2.imread('SMALL_DEM.png')
     x_dash,y_dash = tri_sel(small_image,big_image)
+    # x_dash,y_dash = 8,30
+    # print(x_dash,y_dash)
+    selector(big_image,4)
+    selector(big_image,4)
+    range_px.append(box_list_sel[-2])
+    range_px.append(box_list_sel[-1])
     offset = np.zeros((big_dem_height,big_dem_width))
     offseted = offset_data(small_dem_data,offset,y_dash,x_dash)
     make_image(offseted,'OFFSET.png','')
     image_diff,diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
+
+    flat_dem_1,flat_dem_2 = flat(big_dem_data,offseted,range_px)
+
+    rmse = RMSE(flat_dem_1,flat_dem_2)
+    print(rmse)
+
+    print(PSNR(flat_dem_1,rmse))
+
+    max_val = np.max(flat_dem_1)
+    min_val = np.min(flat_dem_1)
+
+    image_1 = big_image[range_px[0][1]:range_px[1][1],range_px[0][0]:range_px[1][0]]
+    image_1 = cv2.split(image_1)[0]
+    image_2 = offseted[range_px[0][1]:range_px[1][1],range_px[0][0]:range_px[1][0]]
+    print(SSIM(image_2,image_1,min_val,max_val))
+
     cv2.imwrite('bracketed_save.png',image_diff)
 
 
