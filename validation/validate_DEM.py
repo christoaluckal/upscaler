@@ -117,38 +117,7 @@ def normalize(x,min,max,a,b):
     norm = int(a+(b-a)*((x-min)/(max-min)))
     return norm
 
-def flat(array1,array2,range_list):
-    x_min,y_min = range_list[0][0],range_list[0][1]
-    x_max,y_max = range_list[1][0],range_list[1][1]
-    flat1 = []
-    flat2 = []
-    for y in range(y_min,y_max):
-        for x in range(x_min,x_max):
-            if (array1[y][x]!=-32767) and (array2[y][x]!=-32767):
-                flat1.append(array1[y][x])
-                flat2.append(array2[y][x])
-            else:
-                pass
-            #     flat1.append(big)
-            # if (array2[y][x]!=-32767):
-            #     flat2.append(array2[y][x])
-            # else:
-            #     flat2.append(big)
-    return flat1,flat2
 
-def RMSE(array1,array2):
-    from sklearn.metrics import mean_squared_error as mse
-    # sum = 0
-    # for x in range(0,len(array1)):
-    #     sum = sum + pow((array1[x]-array2[x]),2)
-    # rmse = math.sqrt(sum/len(array1))
-    mse_val = mse(array1,array2)
-    rmse = math.sqrt(mse_val)
-    return rmse
-
-def PSNR(array1,rmse):
-    psnr = 20*math.log10(np.max(array1)/rmse)
-    return psnr
 
 # %%
 def get_difference(array1,array2,height,width):
@@ -176,14 +145,61 @@ def get_difference(array1,array2,height,width):
             
     return image,difference
 
+
+def RMSE(array1,array2):
+    from sklearn.metrics import mean_squared_error as mse
+    # sum = 0
+    # for x in range(0,len(array1)):
+    #     sum = sum + pow((array1[x]-array2[x]),2)
+    # rmse = math.sqrt(sum/len(array1))
+    mse_val = mse(array1,array2)
+    rmse = math.sqrt(mse_val)
+    return rmse
+
+def PSNR(array1,rmse):
+    psnr = 20*math.log10(np.max(array1)/rmse)
+    return psnr
+
+def flat(array1,array2,range_list):
+    x_min,y_min = range_list[0][0],range_list[0][1]
+    x_max,y_max = range_list[1][0],range_list[1][1]
+    flat1 = []
+    flat2 = []
+    for y in range(y_min,y_max):
+        for x in range(x_min,x_max):
+            if (array1[y][x]!=-32767) and (array2[y][x]!=-32767):
+                flat1.append(array1[y][x])
+                flat2.append(array2[y][x])
+            else:
+                pass
+            #     flat1.append(big)
+            # if (array2[y][x]!=-32767):
+            #     flat2.append(array2[y][x])
+            # else:
+            #     flat2.append(big)
+    return flat1,flat2
+
+def sflat(array1,range_list):
+    x_min,y_min = range_list[0][0],range_list[0][1]
+    x_max,y_max = range_list[1][0],range_list[1][1]
+    flat1 = []
+    for y in range(y_min,y_max):
+        for x in range(x_min,x_max):
+            if (array1[y][x]!=-32767):
+                flat1.append(array1[y][x])
+            else:
+                pass
+            #     flat1.append(big)
+            # if (array2[y][x]!=-32767):
+            #     flat2.append(array2[y][x])
+            # else:
+            #     flat2.append(big)
+    return flat1
+
 import sys
 args = sys.argv[1:]
 dem1 = args[0]
 dem2 = args[1]
-
-def make_image(image_array,name,out):
-    image_array = np.array(image_array).astype(np.int8)
-    cv2.imwrite(out+name,image_array)
 
 def get_min(array):
     min_t = 0
@@ -196,6 +212,23 @@ def get_min(array):
                     min_t = array[x][y]
 
     return min_t
+
+def make_image(array,name,out):
+    new_arr = np.array(array)
+    # max_val = np.max(new_arr)
+    # min_val = get_min(new_arr)
+    # height,width = new_arr.shape
+    # print(height,width,max_val,min_val)
+    # for x in range(height):
+    #     for y in range(width):
+    #         if new_arr[x][y]!=-32767:
+    #             new_arr[x][y] = int((new_arr[x][y]-min_val)*255/(max_val-min_val))
+    #         else:
+    #             new_arr[x][y] = 0
+    # image_array = np.array(new_arr).astype(np.int8)
+    cv2.imwrite(out+name, new_arr)
+
+
 
 def SSIM(img,img_noise,min_v,max_v):
     # img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -216,7 +249,7 @@ def validate_dems(dem1,dem2):
     small_image = cv2.imread('SMALL_DEM.png')
     x_dash,y_dash = tri_sel(small_image,big_image)
     # x_dash,y_dash = 8,30
-    # print(x_dash,y_dash)
+    print(x_dash,y_dash)
     selector(big_image,4)
     selector(big_image,4)
     range_px.append(box_list_sel[-2])
@@ -224,24 +257,40 @@ def validate_dems(dem1,dem2):
     offset = np.zeros((big_dem_height,big_dem_width))
     offseted = offset_data(small_dem_data,offset,y_dash,x_dash)
     make_image(offseted,'OFFSET.png','')
-    image_diff,diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
+    offset_img = cv2.imread('OFFSET.png')
+    # image_diff,diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
 
     flat_dem_1,flat_dem_2 = flat(big_dem_data,offseted,range_px)
-
+    
     rmse = RMSE(flat_dem_1,flat_dem_2)
-    print(rmse)
+    print("RMSE:",rmse)
 
-    print(PSNR(flat_dem_1,rmse))
+    print("PSNR:",np.max(flat_dem_2),PSNR(flat_dem_1,rmse))
 
-    max_val = np.max(flat_dem_1)
-    min_val = np.min(flat_dem_1)
+    max_val = np.max(flat_dem_2)
+    min_val = np.min(flat_dem_2)
 
     image_1 = big_image[range_px[0][1]:range_px[1][1],range_px[0][0]:range_px[1][0]]
     image_1 = cv2.split(image_1)[0]
-    image_2 = offseted[range_px[0][1]:range_px[1][1],range_px[0][0]:range_px[1][0]]
-    print(SSIM(image_2,image_1,min_val,max_val))
+    image_2 = offset_img[range_px[0][1]:range_px[1][1],range_px[0][0]:range_px[1][0]]
+    image_2 = cv2.split(image_2)[0]
 
-    cv2.imwrite('bracketed_save.png',image_diff)
+    max_val = 255
+    min_val = 0
+    print("SSIM:",SSIM(image_2,image_1,min_val,max_val))
+
+
+    import pandas as pd
+
+    pd_1 = pd.DataFrame(flat_dem_1)
+    pd_2 = pd.DataFrame(sflat(offseted,range_px))
+
+    print("ALTERED")
+    print(pd_1.describe().apply(lambda s: s.apply('{0:.5f}'.format)))
+    print("ORIGINAL")
+    print(pd_2.describe().apply(lambda s: s.apply('{0:.5f}'.format))
+)
+    # cv2.imwrite('bracketed_save.png',image_diff)
 
 
 validate_dems(dem1,dem2)
