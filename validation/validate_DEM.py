@@ -120,6 +120,32 @@ def normalize(x,min,max,a,b):
 
 
 # %%
+# def get_difference(array1,array2,height,width):
+#     image = np.zeros((height,width,3),dtype=np.int32)
+#     difference = np.zeros((height,width,1),dtype=np.float64)
+#     for x in range(height):
+#         for y in range(width):
+#             if(array1[x][y]== -32767 and array2[x][y] == -32767):
+#                 color = np.array([0,0,0])
+#                 difference[x][y] = 0
+#             else:
+#                 dif =  abs(array1[x][y]-array2[x][y])
+#                 if dif > 1:
+#                     color = np.array([0,0,255])
+#                 elif dif > 0.5:
+#                     color = np.array([0,138,255])
+#                 elif dif > 0.2:
+#                     color = np.array([0,255,255])
+#                 elif dif > 0.1:
+#                     color = np.array([0,255,138])
+#                 else:
+#                     color = np.array([0,255,0])
+#                 difference[x][y] = dif
+#             image[x][y]=color
+            
+#     return image,difference
+
+# BLUE_RED
 def get_difference(array1,array2,height,width):
     image = np.zeros((height,width,3),dtype=np.int32)
     difference = np.zeros((height,width,1),dtype=np.float64)
@@ -131,19 +157,60 @@ def get_difference(array1,array2,height,width):
             else:
                 dif =  abs(array1[x][y]-array2[x][y])
                 if dif > 1:
-                    color = np.array([0,0,255])
+                    color = np.array([3,4,122])
+                elif dif > 0.75:
+                    color = np.array([5,47,208])
                 elif dif > 0.5:
-                    color = np.array([0,138,255])
+                    color = np.array([33,126,251])
                 elif dif > 0.2:
-                    color = np.array([0,255,255])
+                    color = np.array([58,207,238])
                 elif dif > 0.1:
-                    color = np.array([0,255,138])
+                    color = np.array([60,252,164])
+                elif dif > 0.075:
+                    color = np.array([152,242,50])
+                elif dif > 0.05:
+                    color = np.array([235,188,40])
+                elif dif > 0.02:
+                    color = np.array([227,107,70])
                 else:
-                    color = np.array([0,255,0])
+                    color = np.array([59,18,48])
                 difference[x][y] = dif
             image[x][y]=color
             
     return image,difference
+
+# def get_difference(array1,array2,height,width):
+#     image = np.zeros((height,width,3),dtype=np.int32)
+#     difference = np.zeros((height,width,1),dtype=np.float64)
+#     for x in range(height):
+#         for y in range(width):
+#             if(array1[x][y]== -32767 and array2[x][y] == -32767):
+#                 color = np.array([0,0,0])
+#                 difference[x][y] = 0
+#             else:
+#                 dif =  abs(array1[x][y]-array2[x][y])
+#                 if dif > 1:
+#                     color = np.array([0,0,255])
+#                 elif dif > 0.75:
+#                     color = np.array([0,66,255])
+#                 elif dif > 0.5:
+#                     color = np.array([0,129,255])
+#                 elif dif > 0.2:
+#                     color = np.array([0,192,255])
+#                 elif dif > 0.1:
+#                     color = np.array([0,255,255])
+#                 elif dif > 0.075:
+#                     color = np.array([0,255,192])
+#                 elif dif > 0.05:
+#                     color = np.array([0,255,129])
+#                 elif dif > 0.02:
+#                     color = np.array([0,255,66])
+#                 else:
+#                     color = np.array([0,255,0])
+#                 difference[x][y] = dif
+#             image[x][y]=color
+            
+#     return image,difference
 
 
 def RMSE(array1,array2):
@@ -247,18 +314,29 @@ def validate_dems(dem1,dem2):
     make_image(small_dem_data,'SMALL_DEM.png','')
     big_image = cv2.imread('BIG_DEM.png')
     small_image = cv2.imread('SMALL_DEM.png')
-    x_dash,y_dash = tri_sel(small_image,big_image)
-    # x_dash,y_dash = 8,30
-    print(x_dash,y_dash)
-    selector(big_image,4)
-    selector(big_image,4)
-    range_px.append(box_list_sel[-2])
-    range_px.append(box_list_sel[-1])
+    # x_dash,y_dash = tri_sel(small_image,big_image)
+
+    # ISR
+    x_dash,y_dash = 2,5
+
+    # # SRGAN
+    # x_dash,y_dash = 6,27
+
+
+    # print(x_dash,y_dash)
+    # selector(big_image,4)
+    # selector(big_image,4)
+    x_min,y_min = 140 ,140
+    x_max,y_max = 3400 ,3000
+    # range_px.append(box_list_sel[-2])
+    # range_px.append(box_list_sel[-1])
+    range_px.append([x_min,y_min])
+    range_px.append([x_max,y_max])
     offset = np.zeros((big_dem_height,big_dem_width))
     offseted = offset_data(small_dem_data,offset,y_dash,x_dash)
     make_image(offseted,'OFFSET.png','')
     offset_img = cv2.imread('OFFSET.png')
-    # image_diff,diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
+    image_diff,diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
 
     flat_dem_1,flat_dem_2 = flat(big_dem_data,offseted,range_px)
     
@@ -290,7 +368,7 @@ def validate_dems(dem1,dem2):
     print("ORIGINAL")
     print(pd_2.describe().apply(lambda s: s.apply('{0:.5f}'.format))
 )
-    # cv2.imwrite('bracketed_save.png',image_diff)
+    cv2.imwrite('bracketed_save.png',image_diff)
 
 
 validate_dems(dem1,dem2)
