@@ -1,12 +1,12 @@
 import os
 import numpy as np
-import split
-import join
+import split_image
+import join_chunks
 import glob
 import time
 import sys
 import cv2
-import isr_scale
+import isr_infer
 
 args = sys.argv[1:]
 
@@ -79,7 +79,7 @@ if modification is not None:
 start = time.time()
 
 for x in image_list:
-    isr_scale.upscale(x,original_folder,'upscaled_big')
+    isr_infer.upscale(x,original_folder,'upscaled_big')
     print("DONE WITH: {}".format(x))
 
 end = time.time()

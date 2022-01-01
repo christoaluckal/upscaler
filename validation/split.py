@@ -61,7 +61,7 @@ def padImage(img,default_pad):
         return result
         
 # This function reads the image array, number of horizontal and vertical splits and the output directory
-def cropImage(img,h_split_num,v_split_num,op):
+def cropImage(img,h_split_num,v_split_num,outfolder,basename):
     white = 0 # Total number of white pixels
     sum_total = 0 # Total number of pixels
     height,width,channel = img.shape
@@ -81,7 +81,7 @@ def cropImage(img,h_split_num,v_split_num,op):
             # Sample the images and reject the mostly empty/white image parts
             if sampleImage(temp_img):
             # print("images/"+str(j)+str(i)+".jpg")
-                img_name = op+"_"+str(i)+"_"+str(j)+"_"+".jpg"
+                img_name = out_folder+base_name+"_"+str(i)+"_"+str(j)+"_"+".jpg"
                 cv2.imwrite(img_name,temp_img)
                 fin_img_list.append(img_name)
             else:
@@ -95,7 +95,7 @@ def cropImage(img,h_split_num,v_split_num,op):
     return fin_img_list
 
 # This function reads the padded image and the inputted default size to create an image map which maps the ij th element to the top left and bottom right coordinates
-def splitImage(img,default_size,op): # Notice the inversion of notations
+def splitImage(img,default_size,outfolder,basename): # Notice the inversion of notations
     height,width = img.shape[0],img.shape[1]
     v_split_num = default_size[0] # The height of the cropped output
     h_split_num = default_size[1] # The width of the cropped output
@@ -106,13 +106,13 @@ def splitImage(img,default_size,op): # Notice the inversion of notations
             # print([i,j],image_map[i,j])
         # print(image_map)
     # print(image_map)
-    img_name = cropImage(img,h_split_num,v_split_num,op)
+    img_name = cropImage(img,h_split_num,v_split_num,outfolder,basename)
     # sampleImage(img)
     return img_name
 
 
 # Main driver function that takes the image path and output path and splits the image returning the split names, map and size  
-def breakImage(img_name,op):
+def breakImage(img_name,outfolder,basename):
     img = cv2.imread(img_name)
     print("Standard image height and width?")
     default_size = int(input()),int(input())
@@ -122,10 +122,17 @@ def breakImage(img_name,op):
     # We pad the image to the desired size so that the output is uniform
     padded_img = padImage(img,default_size)
     # Split the image and retain the coordinates of the split image as a row,col pair
-    img_name_list = splitImage(padded_img,default_size,op)
+    img_name_list = splitImage(padded_img,default_size,outfolder,basename)
     return img_name_list,image_map,default_size
 
-
-
+import sys
+args = sys.argv[1:]
+og_img = args[0]
+out_folder = args[1]
+original_flag = args[2]
+if int(original_flag)==1:
+    base_name = 'og_Ortho'
+else:
+    base_name = 'alt_Ortho'
 # breakImage('/home/caluckal/Desktop/Github/upscaler/validation/downscaled_upscaled_Ortho.png','sift/alt_Ortho')
-breakImage('/home/caluckal/Desktop/Github/upscaler/validation/original_Ortho.png','/home/caluckal/Desktop/Github/upscaler/validation/IP_testing/ISR/sift_results/og_parts')
+breakImage(og_img,out_folder,base_name)

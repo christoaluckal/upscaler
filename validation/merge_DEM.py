@@ -1,8 +1,6 @@
-from numpy.core.records import array
 from osgeo import gdal
 import numpy as np
 import cv2
-from sklearn.preprocessing import normalize
 
 def get_dem_data(dem1_path,dem2_path):
     dem1_height,dem1_width = cv2.imread(dem1_path,-1).shape
@@ -191,7 +189,7 @@ def flatten_dem_arrays(array1,array2,range_list):
 
 range_px = []
 
-def computeMerge(dem1,dem2,merged_loc):
+def compute_merge(dem1,dem2,merged_loc):
     big_data,small_data,band_data = get_dem_data(dem1,dem2)
     big_dem_data,big_dem_height,big_dem_width = big_data
     small_dem_data,small_dem_height,small_dem_width = small_data
@@ -199,9 +197,9 @@ def computeMerge(dem1,dem2,merged_loc):
     make_image(small_dem_data,'SMALL_DEM.png','')
     big_image = cv2.imread('BIG_DEM.png')
     small_image = cv2.imread('SMALL_DEM.png')
-    # x_dash,y_dash = tri_sel(small_image,big_image)
+    x_dash,y_dash = tri_sel(small_image,big_image)
     # print(x_dash,y_dash)
-    x_dash,y_dash = 4,22
+    # x_dash,y_dash = 4,22
     offset = np.zeros((big_dem_height,big_dem_width))
     offseted = offset_data(small_dem_data,offset,y_dash,x_dash)
     make_image(offseted,'OFFSET.png','')
@@ -228,5 +226,5 @@ dem2 = args[1]
 merged_out = args[2]
 
 
-computeMerge(dem1,dem2,merged_out)
+compute_merge(dem1,dem2,merged_out)
 # %%

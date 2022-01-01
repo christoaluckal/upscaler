@@ -2,8 +2,10 @@ testing
 split_output
 upscaled_big
 split_upscaled
+validation/simple_test
 *.tif
 *.npy
+*.zip
 downscaled_upscaled_*_Ortho.png
 downscaled_upscaled_Ortho.png
 difference_array.npy
