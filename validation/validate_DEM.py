@@ -151,8 +151,8 @@ def get_difference(array1,array2,height,width):
     difference = np.zeros((height,width,1),dtype=np.float64)
     for x in range(height):
         for y in range(width):
-            if(array1[x][y]== -32767 and array2[x][y] == -32767):
-                color = np.array([0,0,0])
+            if(array1[x][y]== -32767 or array2[x][y] == -32767):
+                color = np.array([255,255,255])
                 difference[x][y] = 0
             else:
                 dif =  abs(array1[x][y]-array2[x][y])
@@ -282,17 +282,17 @@ def get_min(array):
 
 def make_image(array,name,out):
     new_arr = np.array(array)
-    # max_val = np.max(new_arr)
-    # min_val = get_min(new_arr)
-    # height,width = new_arr.shape
-    # print(height,width,max_val,min_val)
-    # for x in range(height):
-    #     for y in range(width):
-    #         if new_arr[x][y]!=-32767:
-    #             new_arr[x][y] = int((new_arr[x][y]-min_val)*255/(max_val-min_val))
-    #         else:
-    #             new_arr[x][y] = 0
-    # image_array = np.array(new_arr).astype(np.int8)
+    max_val = np.max(new_arr)
+    min_val = get_min(new_arr)
+    height,width = new_arr.shape
+    print(height,width,max_val,min_val)
+    for x in range(height):
+        for y in range(width):
+            if new_arr[x][y]!=-32767:
+                new_arr[x][y] = int((new_arr[x][y]-min_val)*255/(max_val-min_val))
+            else:
+                new_arr[x][y] = 0
+    image_array = np.array(new_arr).astype(np.int8)
     cv2.imwrite(out+name, new_arr)
 
 
@@ -316,11 +316,14 @@ def validate_dems(dem1,dem2):
     small_image = cv2.imread('SMALL_DEM.png')
     # x_dash,y_dash = tri_sel(small_image,big_image)
 
-    # ISR
-    x_dash,y_dash = 2,5
-
     # # SRGAN
     # x_dash,y_dash = 6,27
+
+    # ISR
+    # x_dash,y_dash = 2,5
+
+    # AVG
+    x_dash,y_dash = 6,27
 
 
     # print(x_dash,y_dash)
@@ -336,7 +339,7 @@ def validate_dems(dem1,dem2):
     offseted = offset_data(small_dem_data,offset,y_dash,x_dash)
     make_image(offseted,'OFFSET.png','')
     offset_img = cv2.imread('OFFSET.png')
-    image_diff,diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
+    # image_diff,diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
 
     flat_dem_1,flat_dem_2 = flat(big_dem_data,offseted,range_px)
     
@@ -368,7 +371,7 @@ def validate_dems(dem1,dem2):
     print("ORIGINAL")
     print(pd_2.describe().apply(lambda s: s.apply('{0:.5f}'.format))
 )
-    cv2.imwrite('bracketed_save.png',image_diff)
+    # cv2.imwrite('bracketed_save.png',image_diff)
 
 
 validate_dems(dem1,dem2)

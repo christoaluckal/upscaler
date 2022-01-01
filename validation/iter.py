@@ -13,8 +13,10 @@ if int(dem_type) == 0:
     dem_type = 'SRGAN'
 elif int(dem_type) == 1:
     dem_type = 'ISR'
-else:
+elif int(dem_type) == 2:
     dem_type = 'AVG'
+else:
+    dem_type = 'TEST'
 
 def getdata(dem1_path,dem2_path):
     dem1_height,dem1_width = cv2.imread(dem1_path,-1).shape
@@ -240,7 +242,7 @@ def make_image(array,name,out,og_flag):
     # max_val = np.max(new_arr)
     # min_val = get_min(new_arr)
     if og_flag == False:
-        if dem_type == 'SRGAN':
+        if dem_type == 'SRGAN' or dem_type == 'TEST':
             max_val = srgan_max
             min_val = srgan_min
         elif dem_type == 'ISR':
@@ -250,8 +252,12 @@ def make_image(array,name,out,og_flag):
             max_val = avg_max
             min_val = avg_min
     else:
-        max_val = og_max
-        min_val = og_min
+        if dem_type == 'TEST':
+            max_val = isr_max
+            min_val = isr_min
+        else:
+            max_val = og_max
+            min_val = og_min
 
     height,width = new_arr.shape
     # print(str(name)+" "+str(height)+" "+str(width)+" "+str(max_val)+" "+str(min_val))
@@ -303,8 +309,8 @@ def dem_metrics():
     big_dem_height,big_dem_width = big_dem_data.shape
     print(big_dem_height,big_dem_width)
     print(small_dem_data.shape)
-    for i in range(0,10,1):
-        for j in range(0,20,1):
+    for i in range(15,25,1):
+        for j in range(0,10,1):
             start = time()
             offset = np.zeros((big_dem_height,big_dem_width))
             offseted = offset_data(small_dem_data,offset,i,j)
@@ -340,9 +346,9 @@ def dem_metrics():
 #     print("ORIGINAL")
 #     print(pd_2.describe().apply(lambda s: s.apply('{0:.5f}'.format))
 
-# gen_data(dem1,dem2)
+gen_data(dem1,dem2)
 
 
 # SRGAN y:27 x:6
 # ISR y:5 x:2
-dem_metrics()
+# dem_metrics()

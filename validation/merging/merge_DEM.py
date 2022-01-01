@@ -168,8 +168,8 @@ def get_difference(array1,array2,height,width):
             if array1[x][y] == -32767 or array2[x][y]== -32767:
                 difference[x][y] = min(array1[x][y],array2[x][y])
             else:
-                # difference[x][y] = (array1[x][y]+array2[x][y])/2
-                difference[x][y] = min(array1[x][y],array2[x][y])
+                difference[x][y] = (array1[x][y]+array2[x][y])/2
+                # difference[x][y] = min(array1[x][y],array2[x][y])
 
             
     return difference
@@ -187,6 +187,43 @@ def make_image(image_array,name,out):
 def delete_file(file):
     import os
     os.remove(file)
+import math
+
+def RMSE(array1,array2):
+    from sklearn.metrics import mean_squared_error as mse
+    # sum = 0
+    # for x in range(0,len(array1)):
+    #     sum = sum + pow((array1[x]-array2[x]),2)
+    # rmse = math.sqrt(sum/len(array1))
+    mse_val = mse(array1,array2)
+    rmse = math.sqrt(mse_val)
+    return rmse
+
+def PSNR(array1,rmse):
+    psnr = 20*math.log10(np.max(array1)/rmse)
+    return psnr
+
+def flat(array1,array2,range_list):
+    x_min,y_min = range_list[0][0],range_list[0][1]
+    x_max,y_max = range_list[1][0],range_list[1][1]
+    flat1 = []
+    flat2 = []
+    for y in range(y_min,y_max):
+        for x in range(x_min,x_max):
+            if (array1[y][x]!=-32767) and (array2[y][x]!=-32767):
+                flat1.append(array1[y][x])
+                flat2.append(array2[y][x])
+            else:
+                pass
+            #     flat1.append(big)
+            # if (array2[y][x]!=-32767):
+            #     flat2.append(array2[y][x])
+            # else:
+            #     flat2.append(big)
+
+    return flat1,flat2
+
+range_px = []
 
 def validate_dems(dem1,dem2):
     big_data,small_data,band_data = getdata(dem1,dem2)
@@ -197,10 +234,20 @@ def validate_dems(dem1,dem2):
     big_image = cv2.imread('BIG_DEM.png')
     small_image = cv2.imread('SMALL_DEM.png')
     x_dash,y_dash = tri_sel(small_image,big_image)
+    print(x_dash,y_dash)
+    # x_dash,y_dash = 4,22
     offset = np.zeros((big_dem_height,big_dem_width))
     offseted = offset_data(small_dem_data,offset,y_dash,x_dash)
     make_image(offseted,'OFFSET.png','')
     diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
+    x_min,y_min = 140 ,140
+    x_max,y_max = 3400 ,3000
+    # range_px.append(box_list_sel[-2])
+    # range_px.append(box_list_sel[-1])
+    range_px.append([x_min,y_min])
+    range_px.append([x_max,y_max])
+    flat1,flat2 = flat(big_dem_data,offseted,range_px)
+    print("RMSE:",RMSE(flat1,flat2))
     # cv2.imwrite('bracketed_save.png',image_diff)
     write_tiff(diff_array,big_dem_height,big_dem_width,band_data)
     delete_file('BIG_DEM.png')
@@ -209,3 +256,4 @@ def validate_dems(dem1,dem2):
 
 
 validate_dems(dem1,dem2)
+# %%
