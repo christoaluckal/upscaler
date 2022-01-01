@@ -96,15 +96,6 @@ def tri_sel(image1,image2):
     return (x_avg,y_avg)
 
 
-def min_no_outlier(data,height,width):
-    min = 0
-    for x in range(height):
-        for y in range(width):
-            test = data[x][y]
-            if test < min and test!=-32767:
-                min = test
-    return min
-
 def offset_data(og,dummy,y_off,x_off):
     og_height,og_width = og.shape
     for y in range(og_height):
@@ -113,9 +104,9 @@ def offset_data(og,dummy,y_off,x_off):
     
     return dummy
 
-def normalize(x,min,max,a,b):
-    norm = int(a+(b-a)*((x-min)/(max-min)))
-    return norm
+# def normalize(x,min,max,a,b):
+#     norm = int(a+(b-a)*((x-min)/(max-min)))
+#     return norm
 
 
 
@@ -145,7 +136,7 @@ def normalize(x,min,max,a,b):
             
 #     return image,difference
 
-# BLUE_RED
+# BLUE-GREEN-RED
 def get_difference(array1,array2,height,width):
     image = np.zeros((height,width,3),dtype=np.int32)
     difference = np.zeros((height,width,1),dtype=np.float64)
@@ -179,6 +170,7 @@ def get_difference(array1,array2,height,width):
             
     return image,difference
 
+# GREEN-YELLOW-RED
 # def get_difference(array1,array2,height,width):
 #     image = np.zeros((height,width,3),dtype=np.int32)
 #     difference = np.zeros((height,width,1),dtype=np.float64)
@@ -215,10 +207,6 @@ def get_difference(array1,array2,height,width):
 
 def RMSE(array1,array2):
     from sklearn.metrics import mean_squared_error as mse
-    # sum = 0
-    # for x in range(0,len(array1)):
-    #     sum = sum + pow((array1[x]-array2[x]),2)
-    # rmse = math.sqrt(sum/len(array1))
     mse_val = mse(array1,array2)
     rmse = math.sqrt(mse_val)
     return rmse
@@ -239,11 +227,6 @@ def flat(array1,array2,range_list):
                 flat2.append(array2[y][x])
             else:
                 pass
-            #     flat1.append(big)
-            # if (array2[y][x]!=-32767):
-            #     flat2.append(array2[y][x])
-            # else:
-            #     flat2.append(big)
     return flat1,flat2
 
 def sflat(array1,range_list):
@@ -256,17 +239,8 @@ def sflat(array1,range_list):
                 flat1.append(array1[y][x])
             else:
                 pass
-            #     flat1.append(big)
-            # if (array2[y][x]!=-32767):
-            #     flat2.append(array2[y][x])
-            # else:
-            #     flat2.append(big)
     return flat1
 
-import sys
-args = sys.argv[1:]
-dem1 = args[0]
-dem2 = args[1]
 
 def get_min(array):
     min_t = 0
@@ -280,65 +254,76 @@ def get_min(array):
 
     return min_t
 
-def make_image(array,name,out):
+srgan_max = 24.3338
+srgan_min = -16.420786
+og_max = 28.364176
+og_min = -21.73187
+isr_max = 24.542622
+isr_min = -22.41958
+avg_max = 24.41634
+avg_min = -14.85847
+
+def make_image(array,name,out,og_flag):
     new_arr = np.array(array)
-    max_val = np.max(new_arr)
-    min_val = get_min(new_arr)
+    if og_flag == False:
+        if dem_type == 'SRGAN':
+            max_val = srgan_max
+            min_val = srgan_min
+        elif dem_type == 'ISR':
+            max_val = isr_max
+            min_val = isr_min
+        elif dem_type == 'AVG':
+            max_val = avg_max
+            min_val = avg_min
+    else:
+        max_val = og_max
+        min_val = og_min
+
     height,width = new_arr.shape
-    print(height,width,max_val,min_val)
     for x in range(height):
         for y in range(width):
             if new_arr[x][y]!=-32767:
                 new_arr[x][y] = int((new_arr[x][y]-min_val)*255/(max_val-min_val))
             else:
                 new_arr[x][y] = 0
-    image_array = np.array(new_arr).astype(np.int8)
-    cv2.imwrite(out+name, new_arr)
-
+    image_array = new_arr
+    cv2.imwrite(out+name, image_array)
 
 
 def SSIM(img,img_noise,min_v,max_v):
-    # img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    # img_noise = cv2.cvtColor(img_noise,cv2.COLOR_BGR2GRAY)
-
     from skimage.metrics import structural_similarity as ssim
     ssim_noise = ssim(img, img_noise,
                   data_range=max_v - min_v)
     return ssim_noise
 
-def validate_dems(dem1,dem2):
+def validate_dems(dem1,dem2,dem_type):
     big_data,small_data = getdata(dem1,dem2)
     big_dem_data,big_dem_height,big_dem_width = big_data
     small_dem_data,small_dem_height,small_dem_width = small_data
-    make_image(big_dem_data,'BIG_DEM.png','')
-    make_image(small_dem_data,'SMALL_DEM.png','')
+    make_image(big_dem_data,'BIG_DEM.png','',False)
+    make_image(small_dem_data,'SMALL_DEM.png','',True)
     big_image = cv2.imread('BIG_DEM.png')
     small_image = cv2.imread('SMALL_DEM.png')
     # x_dash,y_dash = tri_sel(small_image,big_image)
 
-    # # SRGAN
-    # x_dash,y_dash = 6,27
-
+    if dem_type == 'SRGAN' or dem_type == 'AVG':
+    # SRGAN or AVG
+        x_dash,y_dash = 6,27
+    else:
     # ISR
-    # x_dash,y_dash = 2,5
+        x_dash,y_dash = 2,5
 
-    # AVG
-    x_dash,y_dash = 6,27
-
-
-    # print(x_dash,y_dash)
     # selector(big_image,4)
     # selector(big_image,4)
     x_min,y_min = 140 ,140
     x_max,y_max = 3400 ,3000
-    # range_px.append(box_list_sel[-2])
-    # range_px.append(box_list_sel[-1])
     range_px.append([x_min,y_min])
     range_px.append([x_max,y_max])
     offset = np.zeros((big_dem_height,big_dem_width))
     offseted = offset_data(small_dem_data,offset,y_dash,x_dash)
-    make_image(offseted,'OFFSET.png','')
+    make_image(offseted,'OFFSET.png','',True)
     offset_img = cv2.imread('OFFSET.png')
+    
     # image_diff,diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
 
     flat_dem_1,flat_dem_2 = flat(big_dem_data,offseted,range_px)
@@ -346,7 +331,7 @@ def validate_dems(dem1,dem2):
     rmse = RMSE(flat_dem_1,flat_dem_2)
     print("RMSE:",rmse)
 
-    print("PSNR:",np.max(flat_dem_2),PSNR(flat_dem_1,rmse))
+    print("PSNR:",np.max(flat_dem_2),PSNR(flat_dem_2,rmse))
 
     max_val = np.max(flat_dem_2)
     min_val = np.min(flat_dem_2)
@@ -374,4 +359,17 @@ def validate_dems(dem1,dem2):
     # cv2.imwrite('bracketed_save.png',image_diff)
 
 
-validate_dems(dem1,dem2)
+import sys
+args = sys.argv[1:]
+dem1 = args[0]
+dem2 = args[1]
+dem_type = args[2]
+
+if int(dem_type) == 0:
+    dem_type = 'SRGAN'
+elif int(dem_type) == 1:
+    dem_type = 'ISR'
+else:
+    dem_type = 'AVG'
+
+validate_dems(dem1,dem2,dem_type)

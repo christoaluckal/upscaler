@@ -157,10 +157,6 @@ def get_difference(array1,array2,height,width):
 
 def RMSE(array1,array2):
     from sklearn.metrics import mean_squared_error as mse
-    # sum = 0
-    # for x in range(0,len(array1)):
-    #     sum = sum + pow((array1[x]-array2[x]),2)
-    # rmse = math.sqrt(sum/len(array1))
     mse_val = mse(array1,array2)
     rmse = math.sqrt(mse_val)
     return rmse
@@ -170,15 +166,6 @@ def PSNR(array1,rmse):
     return psnr
 
 def flat(array1,array2,range_list):
-    # if dem_type == 'SRGAN':
-    #     x_min,y_min = 140,120
-    #     x_max,y_max = 3368,2964
-    # elif dem_type == 'ISR':
-    #     x_min,y_min = 132, 124
-    #     x_max,y_max = 3368, 2988
-    # else:
-    #     x_min,y_min = 152 ,140
-    #     x_max,y_max = 3312 ,2960
     x_min,y_min = 140 ,140
     x_max,y_max = 3400 ,3000
     flat1 = []
@@ -190,31 +177,7 @@ def flat(array1,array2,range_list):
                 flat2.append(array2[y][x])
             else:
                 pass
-            #     flat1.append(big)
-            # if (array2[y][x]!=-32767):
-            #     flat2.append(array2[y][x])
-            # else:
-            #     flat2.append(big)
     return flat1,flat2
-
-# def sflat(array1,range_list):
-#     x_min,y_min = range_list[0][0],range_list[0][1]
-#     x_max,y_max = range_list[1][0],range_list[1][1]
-#     flat1 = []
-#     for y in range(y_min,y_max):
-#         for x in range(x_min,x_max):
-#             if (array1[y][x]!=-32767):
-#                 flat1.append(array1[y][x])
-#             else:
-#                 pass
-#             #     flat1.append(big)
-#             # if (array2[y][x]!=-32767):
-#             #     flat2.append(array2[y][x])
-#             # else:
-#             #     flat2.append(big)
-#     return flat1
-
-
 
 def get_min(array):
     min_t = 0
@@ -239,8 +202,6 @@ avg_min = -9.751682
 
 def make_image(array,name,out,og_flag):
     new_arr = np.array(array)
-    # max_val = np.max(new_arr)
-    # min_val = get_min(new_arr)
     if og_flag == False:
         if dem_type == 'SRGAN' or dem_type == 'TEST':
             max_val = srgan_max
@@ -260,7 +221,6 @@ def make_image(array,name,out,og_flag):
             min_val = og_min
 
     height,width = new_arr.shape
-    # print(str(name)+" "+str(height)+" "+str(width)+" "+str(max_val)+" "+str(min_val))
     for x in range(height):
         for y in range(width):
             if new_arr[x][y]!=-32767:
@@ -274,9 +234,6 @@ def make_image(array,name,out,og_flag):
 
 
 def SSIM(img,img_noise,min_v,max_v):
-    # img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-    # img_noise = cv2.cvtColor(img_noise,cv2.COLOR_BGR2GRAY)
-
     from skimage.metrics import structural_similarity as ssim
     ssim_noise = ssim(img, img_noise,
                   data_range=max_v - min_v)
@@ -307,8 +264,6 @@ def dem_metrics():
     small_dem_data = loadnpy('iter_op/{}/SMALL_DEM.npy'.format(dem_type))
     big_image = cv2.imread('iter_op/{}/BIG_DEM.png'.format(dem_type))
     big_dem_height,big_dem_width = big_dem_data.shape
-    print(big_dem_height,big_dem_width)
-    print(small_dem_data.shape)
     for i in range(15,25,1):
         for j in range(0,10,1):
             start = time()
@@ -336,19 +291,12 @@ def dem_metrics():
                 res.write((str(i)+','+str(j)+":|{},{},{},{}|\n".format(rmse,psnr_max,psnr_score,ssim_score)))
                 end = time()
                 print("{},{} PER ITER:{}".format(i,j,end-start))
-    # import pandas as pd
 
-    # pd_1 = pd.DataFrame(flat_dem_1)
-    # pd_2 = pd.DataFrame(sflat(offseted,range_px))
-
-#     print("ALTERED")
-#     print(pd_1.describe().apply(lambda s: s.apply('{0:.5f}'.format)))
-#     print("ORIGINAL")
-#     print(pd_2.describe().apply(lambda s: s.apply('{0:.5f}'.format))
 
 gen_data(dem1,dem2)
-
+# dem_metrics()
 
 # SRGAN y:27 x:6
 # ISR y:5 x:2
-# dem_metrics()
+# AVG offset (SRGAN>ISR) (y:22 x:4)
+# AVG y:27 x:6 

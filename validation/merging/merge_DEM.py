@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 from sklearn.preprocessing import normalize
 
-def getdata(dem1_path,dem2_path):
+def get_dem_data(dem1_path,dem2_path):
     dem1_height,dem1_width = cv2.imread(dem1_path,-1).shape
     dem1_file = gdal.Open(str(dem1_path))
     dem1_band = dem1_file.GetRasterBand(1)
@@ -37,7 +37,7 @@ def getdata(dem1_path,dem2_path):
     return (big_dem,big_height,big_width),(small_dem,small_height,small_width),big_file
     # cv2.imwrite('/home/caluckal/Desktop/Github/elevation-infer/validation/test.png',dem_data)
 
-def getfirstvalid(array,height,width):
+def get_first_valid(array,height,width):
     try:
         for x in range(height):
             for y in range(width):
@@ -121,10 +121,12 @@ def normalize(x,min,max,a,b):
     norm = int(a+(b-a)*((x-min)/(max-min)))
     return norm
 
-def write_tiff(arr_out,height,width,ds):
+def write_tiff(arr_out,height,width,ds,merged_loc):
     print(arr_out.shape)
+    if merged_loc[-1] == '/':
+        merged_loc = merged_loc[:-1]
     driver = gdal.GetDriverByName("GTiff")
-    outdata = driver.Create("merged.tif", width, height, 1, gdal.GDT_Float32)
+    outdata = driver.Create("{}/merged.tif".format(merged_loc), width, height, 1, gdal.GDT_Float32)
     outdata.SetGeoTransform(ds.GetGeoTransform())##sets same geotransform as input
     outdata.SetProjection(ds.GetProjection())##sets same projection as input
     outdata.GetRasterBand(1).WriteArray(arr_out)
@@ -135,50 +137,18 @@ def write_tiff(arr_out,height,width,ds):
     ds=None
 
 
-# %%
-# def get_difference(array1,array2,height,width):
-#     image = np.zeros((height,width,3),dtype=np.int32)
-#     difference = np.zeros((height,width,1),dtype=np.float64)
-#     for x in range(height):
-#         for y in range(width):
-#             if(array1[x][y]== -32767 and array2[x][y] == -32767):
-#                 color = np.array([0,0,0])
-#                 difference[x][y] = 0
-#             else:
-#                 dif =  abs(array1[x][y]-array2[x][y])
-#                 if dif > 1:
-#                     color = np.array([0,0,255])
-#                 elif dif > 0.5:
-#                     color = np.array([0,138,255])
-#                 elif dif > 0.2:
-#                     color = np.array([0,255,255])
-#                 elif dif > 0.1:
-#                     color = np.array([0,255,138])
-#                 else:
-#                     color = np.array([0,255,0])
-#                 difference[x][y] = dif
-#             image[x][y]=color
-            
-#     return image,difference
-
 def get_difference(array1,array2,height,width):
     difference = np.zeros((height,width),dtype=np.float32)
     for x in range(height):
         for y in range(width):
             if array1[x][y] == -32767 or array2[x][y]== -32767:
-                difference[x][y] = min(array1[x][y],array2[x][y])
+                difference[x][y] = max(array1[x][y],array2[x][y])
             else:
                 difference[x][y] = (array1[x][y]+array2[x][y])/2
                 # difference[x][y] = min(array1[x][y],array2[x][y])
 
             
     return difference
-
-
-import sys
-args = sys.argv[1:]
-dem1 = args[0]
-dem2 = args[1]
 
 def make_image(image_array,name,out):
     image_array = np.array(image_array).astype(np.int8)
@@ -191,10 +161,6 @@ import math
 
 def RMSE(array1,array2):
     from sklearn.metrics import mean_squared_error as mse
-    # sum = 0
-    # for x in range(0,len(array1)):
-    #     sum = sum + pow((array1[x]-array2[x]),2)
-    # rmse = math.sqrt(sum/len(array1))
     mse_val = mse(array1,array2)
     rmse = math.sqrt(mse_val)
     return rmse
@@ -203,7 +169,7 @@ def PSNR(array1,rmse):
     psnr = 20*math.log10(np.max(array1)/rmse)
     return psnr
 
-def flat(array1,array2,range_list):
+def flatten_dem_arrays(array1,array2,range_list):
     x_min,y_min = range_list[0][0],range_list[0][1]
     x_max,y_max = range_list[1][0],range_list[1][1]
     flat1 = []
@@ -225,17 +191,17 @@ def flat(array1,array2,range_list):
 
 range_px = []
 
-def validate_dems(dem1,dem2):
-    big_data,small_data,band_data = getdata(dem1,dem2)
+def computeMerge(dem1,dem2,merged_loc):
+    big_data,small_data,band_data = get_dem_data(dem1,dem2)
     big_dem_data,big_dem_height,big_dem_width = big_data
     small_dem_data,small_dem_height,small_dem_width = small_data
     make_image(big_dem_data,'BIG_DEM.png','')
     make_image(small_dem_data,'SMALL_DEM.png','')
     big_image = cv2.imread('BIG_DEM.png')
     small_image = cv2.imread('SMALL_DEM.png')
-    x_dash,y_dash = tri_sel(small_image,big_image)
-    print(x_dash,y_dash)
-    # x_dash,y_dash = 4,22
+    # x_dash,y_dash = tri_sel(small_image,big_image)
+    # print(x_dash,y_dash)
+    x_dash,y_dash = 4,22
     offset = np.zeros((big_dem_height,big_dem_width))
     offseted = offset_data(small_dem_data,offset,y_dash,x_dash)
     make_image(offseted,'OFFSET.png','')
@@ -246,14 +212,21 @@ def validate_dems(dem1,dem2):
     # range_px.append(box_list_sel[-1])
     range_px.append([x_min,y_min])
     range_px.append([x_max,y_max])
-    flat1,flat2 = flat(big_dem_data,offseted,range_px)
+    flat1,flat2 = flatten_dem_arrays(big_dem_data,offseted,range_px)
     print("RMSE:",RMSE(flat1,flat2))
     # cv2.imwrite('bracketed_save.png',image_diff)
-    write_tiff(diff_array,big_dem_height,big_dem_width,band_data)
+    write_tiff(diff_array,big_dem_height,big_dem_width,band_data,merged_loc)
     delete_file('BIG_DEM.png')
     delete_file('SMALL_DEM.png')
     delete_file('OFFSET.png')
 
 
-validate_dems(dem1,dem2)
+import sys
+args = sys.argv[1:]
+dem1 = args[0]
+dem2 = args[1]
+merged_out = args[2]
+
+
+computeMerge(dem1,dem2,merged_out)
 # %%
