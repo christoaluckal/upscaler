@@ -1,3 +1,4 @@
+# Image Metric Calculations. Just put the the folder directory in the correct order. Original|SRGAN|ISR|PIL. Or use the below command
 import sys
 from image_similarity_measures.quality_metrics import rmse,psnr,ssim,fsim,issm,sre,sam,uiq
 import cpbd
@@ -5,7 +6,7 @@ import cv2
 import os
 from PIL import Image
 
-# python3 image_metrics.py simple_test/Phantom_2_nadir/ simple_test/downscaled_upscaled_SRGAN/ simple_test/downscaled_upscaled_ISR/ simple_test/PIL_upscale/
+# python3 image_metrics.py all_images/original/ all_images/downscaled_upscaled_SRGAN/ all_images/downscaled_upscaled_ISR/ all_images/PIL_upscale/
 
 def siftdensity(img1):
 #load images
@@ -19,13 +20,14 @@ def siftdensity(img1):
     density = len(kp1)/(0.01*0.01*height*width)
     return density
 
+# RGB Image Comparisons
 def compute_metrics(og,alt):
-    alt_rmse = rmse(og,alt)
-    alt_psnr = psnr(og,alt)
-    alt_ssim = ssim(og,alt)
+    alt_rmse = rmse(og,alt) # Root Mean Square Error
+    alt_psnr = psnr(og,alt) # Peak Signal-to-Noise Ratio (dB)
+    alt_ssim = ssim(og,alt) # Structural Similarity Index
     og_gray = cv2.cvtColor(og,cv2.COLOR_BGR2GRAY)
     alt_gray = cv2.cvtColor(alt,cv2.COLOR_BGR2GRAY)
-    og_density = siftdensity(og_gray)
+    og_density = siftdensity(og_gray) # No. of SIFT features per 100x100px
     alt_density = siftdensity(alt_gray)
     return (alt_rmse,alt_psnr,alt_ssim,og_density,alt_density)
     
@@ -36,13 +38,14 @@ srgan_images = args[1]
 isr_images = args[2]
 pil_images = args[3]
 
-result = open('img_metric.txt','w+')
+result = open('img_metric.txt','w+') # Change this to whatever
 
 og_img_list = sorted([x for x in os.listdir(og_images) if x.lower().endswith('.jpg')])
 srgan_img_list = sorted([x for x in os.listdir(srgan_images) if x.lower().endswith('.jpg')])
 isr_img_list = sorted([x for x in os.listdir(isr_images) if x.lower().endswith('.jpg')])
 pil_img_list = sorted([x for x in os.listdir(pil_images) if x.lower().endswith('.jpg')])
 
+# Average metric calculations
 og_density = 0
 
 srgan_rmse = 0
@@ -64,8 +67,9 @@ counter = 0
 
 from random import randint as rd
 
+# Make a zip list and randomnly take an image
 zip_list = list(zip(og_img_list,srgan_img_list,isr_img_list,pil_img_list))
-for i in range(0,10):
+for i in range(0,10): # Change this to whatever length
     rand_int = rd(0,len(og_img_list)-1)
     a,b,c,d = zip_list[rand_int]
     # for a,b,c,d in zip_list:
@@ -101,9 +105,6 @@ for i in range(0,10):
         pil_ssim+=img4_metrics[2]
         pil_alt_density+=img4_metrics[4]
         
-        # print(srgan_rmse,srgan_psnr,srgan_ssim,srgan_alt_density)
-        # print(isr_rmse,isr_psnr,isr_ssim,isr_alt_density)
-        # print(pil_rmse,pil_psnr,pil_ssim,pil_alt_density)
         print("---------------------------------------------------{}\n".format(counter))
         counter+=1
 

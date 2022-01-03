@@ -134,5 +134,5 @@ if int(original_flag)==1:
     base_name = 'og_Ortho'
 else:
     base_name = 'alt_Ortho'
-# breakImage('/home/caluckal/Desktop/Github/upscaler/validation/downscaled_upscaled_Ortho.png','sift/alt_Ortho')
+
 breakImage(og_img,out_folder,base_name)

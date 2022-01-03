@@ -50,10 +50,6 @@ og_folder = args[0]
 alt_folder = args[1]
 match_folder = args[2]
 
-# og_folder = '/home/caluckal/Desktop/Github/upscaler/validation/IP_testing/ISR/sift_results/og_parts'
-# alt_folder = '/home/caluckal/Desktop/Github/upscaler/validation/IP_testing/ISR/sift_results/alt_parts'
-
-
 
 og_list = sorted([x for x in os.listdir(og_folder) if x.endswith('.jpg')])
 alt_list = sorted([x for x in os.listdir(alt_folder) if x.endswith('.jpg')])

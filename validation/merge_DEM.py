@@ -120,6 +120,9 @@ def normalize(x,min,max,a,b):
     return norm
 
 def write_tiff(arr_out,height,width,ds,merged_loc):
+    '''
+    Write a numpy array to a TIFF file
+    '''
     print(arr_out.shape)
     if merged_loc[-1] == '/':
         merged_loc = merged_loc[:-1]
@@ -136,6 +139,10 @@ def write_tiff(arr_out,height,width,ds,merged_loc):
 
 
 def get_difference(array1,array2,height,width):
+    '''
+    Make a difference array. If either values of the array are -32767 then the maximum of them are taken
+    Otherwise average. May be a better way
+    '''
     difference = np.zeros((height,width),dtype=np.float32)
     for x in range(height):
         for y in range(width):
@@ -190,6 +197,9 @@ def flatten_dem_arrays(array1,array2,range_list):
 range_px = []
 
 def compute_merge(dem1,dem2,merged_loc):
+    '''
+    You can select the two DEMs and determine the optimal x_dash,y_dash. Or you can set it to values you want
+    '''
     big_data,small_data,band_data = get_dem_data(dem1,dem2)
     big_dem_data,big_dem_height,big_dem_width = big_data
     small_dem_data,small_dem_height,small_dem_width = small_data
@@ -199,7 +209,7 @@ def compute_merge(dem1,dem2,merged_loc):
     small_image = cv2.imread('SMALL_DEM.png')
     x_dash,y_dash = tri_sel(small_image,big_image)
     # print(x_dash,y_dash)
-    # x_dash,y_dash = 4,22
+    # x_dash,y_dash = 4,22 # CHANGE THIS HERE TO WHATEVER YOU WANT INCASE YOU DONT WANT TO SELECT
     offset = np.zeros((big_dem_height,big_dem_width))
     offseted = offset_data(small_dem_data,offset,y_dash,x_dash)
     make_image(offseted,'OFFSET.png','')

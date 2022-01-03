@@ -1,3 +1,4 @@
+# This code is used to iterate 2 dems over each other and print the RMSE,PSNR,SSIM metrics for each offset
 from osgeo import gdal
 import numpy as np
 import cv2
@@ -6,6 +7,7 @@ import math
 
 import sys
 
+# Calculate which is the larger DEM. The larger DEM is kept stationary and the smaller DEM is offseted around the larger
 def getdata(dem1_path,dem2_path):
     dem1_height,dem1_width = cv2.imread(dem1_path,-1).shape
     dem1_file = gdal.Open(str(dem1_path))
@@ -79,6 +81,12 @@ def selector(image_og,scale):
     return box_list_sel
 
 def tri_sel(image1,image2):
+    '''
+    Takes image1 and image2 and displays it on screen allowing user to click on it. selector method takes scale as second parameter
+    1 = Full size
+    2 = Half size
+    4 = Quarter size
+    '''
     count = 0
     global scale
     scale = 1
@@ -99,6 +107,9 @@ def tri_sel(image1,image2):
 
 
 def offset_data(og,dummy,y_off,x_off):
+    '''
+    The smaller DEM is put into an array of the same size as the larger DEM and offseted by some x,y
+    '''
     og_height,og_width = og.shape
     d_height,d_width = dummy.shape
     if og_height+y_off < d_height and og_width+x_off < d_width:
@@ -110,37 +121,6 @@ def offset_data(og,dummy,y_off,x_off):
     else:
         return None
 
-def normalize(x,min,max,a,b):
-    norm = int(a+(b-a)*((x-min)/(max-min)))
-    return norm
-
-
-
-# %%
-def get_difference(array1,array2,height,width):
-    image = np.zeros((height,width,3),dtype=np.int32)
-    difference = np.zeros((height,width,1),dtype=np.float64)
-    for x in range(height):
-        for y in range(width):
-            if(array1[x][y]== -32767 and array2[x][y] == -32767):
-                color = np.array([0,0,0])
-                difference[x][y] = 0
-            else:
-                dif =  abs(array1[x][y]-array2[x][y])
-                if dif > 1:
-                    color = np.array([0,0,255])
-                elif dif > 0.5:
-                    color = np.array([0,138,255])
-                elif dif > 0.2:
-                    color = np.array([0,255,255])
-                elif dif > 0.1:
-                    color = np.array([0,255,138])
-                else:
-                    color = np.array([0,255,0])
-                difference[x][y] = dif
-            image[x][y]=color
-            
-    return image,difference
 
 
 def RMSE(array1,array2):
@@ -153,7 +133,11 @@ def PSNR(array1,rmse):
     psnr = 20*math.log10(np.max(array1)/rmse)
     return psnr
 
+
 def flat(array1,array2,range_list):
+    '''
+    Flattens the DEM array to the specified range and removes all instances of either DEM having -32767 as a value
+    '''
     x_min,y_min = 140 ,140
     x_max,y_max = 3400 ,3000
     flat1 = []
@@ -168,6 +152,9 @@ def flat(array1,array2,range_list):
     return flat1,flat2
 
 def get_min(array):
+    '''
+    Getting minimum excluding the outlier
+    '''
     min_t = 0
     for x in range(0,len(array)):
         for y in range(0,len(array[0])):
@@ -179,6 +166,7 @@ def get_min(array):
 
     return min_t
 
+# Predefined values to speed up calculation
 srgan_max = 24.3338
 srgan_min = -16.420786
 og_max = 28.364176
@@ -191,6 +179,9 @@ pil_max = 24.781492
 pil_min = -14.546541
 
 def make_image(array,name,out,og_flag):
+    '''
+    Make a normalized image of the array. og_flag is for if the image is the original DEM and not a generated one
+    '''
     new_arr = np.array(array)
     if og_flag == False:
         if dem_type == 'SRGAN' or dem_type == 'TEST':
@@ -233,7 +224,7 @@ def SSIM(img,img_noise,min_v,max_v):
     return ssim_noise
 
 def savenpy(array,text):
-    with open('iter_op/{}/{}.npy'.format(dem_type,text),'wb') as f:
+    with open('iteration_testing/{}/{}.npy'.format(dem_type,text),'wb') as f:
         np.save(f,array)
 
 def loadnpy(loc):
@@ -241,30 +232,37 @@ def loadnpy(loc):
     return arr
 
 def gen_data(dem1,dem2):
+    '''
+    Saving the DEM arrays to speed up calculation. Use this method first before calculating metrics
+    '''
     print("DEM_TYPE:",dem_type)
     big_data,small_data = getdata(dem1,dem2)
     big_dem_data,big_dem_height,big_dem_width = big_data
     small_dem_data,small_dem_height,small_dem_width = small_data
-    make_image(big_dem_data,'iter_op/{}/BIG_DEM.png'.format(dem_type),'',False)
-    # make_image(small_dem_data,'iter_op/{}/SMALL_DEM.png'.format(dem_type),'',False)
+    make_image(big_dem_data,'iteration_testing/{}/BIG_DEM.png'.format(dem_type),'',False)
+    # make_image(small_dem_data,'iteration_testing/{}/SMALL_DEM.png'.format(dem_type),'',False)
     savenpy(big_dem_data,'BIG_DEM')
     savenpy(small_dem_data,'SMALL_DEM')
 
 
 from time import time
 def dem_metrics():
-    big_dem_data = loadnpy('iter_op/{}/BIG_DEM.npy'.format(dem_type))
-    small_dem_data = loadnpy('iter_op/{}/SMALL_DEM.npy'.format(dem_type))
-    big_image = cv2.imread('iter_op/{}/BIG_DEM.png'.format(dem_type))
+    '''
+    Metrics calculations. The method prints the metric values. Set the offset range to whatever you desire.
+    (0,50,5) means the offset will lie in that range
+    '''
+    big_dem_data = loadnpy('iteration_testing/{}/BIG_DEM.npy'.format(dem_type))
+    small_dem_data = loadnpy('iteration_testing/{}/SMALL_DEM.npy'.format(dem_type))
+    big_image = cv2.imread('iteration_testing/{}/BIG_DEM.png'.format(dem_type))
     big_dem_height,big_dem_width = big_dem_data.shape
-    for i in range(5,15,1):
-        for j in range(0,10,1):
+    for i in range(0,50,5):
+        for j in range(0,50,5):
             start = time()
             offset = np.zeros((big_dem_height,big_dem_width))
             offseted = offset_data(small_dem_data,offset,i,j)
             if offseted is not None:
-                make_image(offseted,'iter_op/{}/OFFSET.png'.format(dem_type),'',True)
-                offset_img = cv2.imread('iter_op/{}/OFFSET.png'.format(dem_type))
+                make_image(offseted,'iteration_testing/{}/OFFSET.png'.format(dem_type),'',True)
+                offset_img = cv2.imread('iteration_testing/{}/OFFSET.png'.format(dem_type))
                 flat_dem_1,flat_dem_2 = flat(big_dem_data,offseted,range_px)   
                 rmse = RMSE(flat_dem_1,flat_dem_2)
                 print("RMSE:",rmse)       
@@ -300,9 +298,9 @@ elif int(dem_type) == 3:
 else:
     dem_type = 'TEST'
 
-res = open('iter_op/{}/results.txt'.format(dem_type),'w+')
-# gen_data(dem1,dem2)
-dem_metrics()
+res = open('iteration_testing/{}/results.txt'.format(dem_type),'w+')
+gen_data(dem1,dem2) # USE THIS FIRST BEFORE METRICS
+# dem_metrics()
 
 # SRGAN y:27 x:6
 # ISR y:5 x:2

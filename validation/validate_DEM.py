@@ -33,7 +33,7 @@ def getdata(dem1_path,dem2_path):
         small_height = dem2_height       
 
     return (big_dem,big_height,big_width),(small_dem,small_height,small_width)
-    # cv2.imwrite('/home/caluckal/Desktop/Github/elevation-infer/validation/test.png',dem_data)
+
 
 box_list_sel = []
 range_px = []

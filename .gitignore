@@ -1,19 +1,8 @@
-testing
-split_output
-upscaled_big
-split_upscaled
-validation/simple_test
-*.tif
-*.npy
-*.zip
-downscaled_upscaled_*_Ortho.png
-downscaled_upscaled_Ortho.png
-difference_array.npy
-original_Ortho.png
+all_images
+data
+image_comparison
 IP_testing
-half_res
-full_res
-sift
+iteration_testing
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

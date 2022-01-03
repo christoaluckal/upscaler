@@ -6,6 +6,8 @@ args = sys.argv[1:]
 
 dem_file = args[0]
 
+# Read DEM TIFF and save as basic grayscale image
+
 def get_dem_image(dem1_path):
     dem1_height,dem1_width = cv2.imread(dem1_path,-1).shape
     dem1_file = gdal.Open(str(dem1_path))

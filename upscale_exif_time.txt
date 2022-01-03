@@ -1,0 +1,17 @@
+SRGAN
+5472->21888 FINISHED 264 files in 28156.335834026337s
+5472->21888 Total time for Exif copying of 264 files is 2571.767647743225s
+
+1368->5472 FINISHED 314 files in 2190.6703803539276s
+_____________________________________________________________________________
+
+ISR
+5472->10944 FINISHED 314 files in 29329.74248766899s
+5472->10944 Total time for Exif copying of 314 files is 778.5647525787354s
+
+_____________________________________________________________________________
+ISR
+
+2736->5472 FINISHED 314 files in 6138.8240213394165s
+2736->5472 Total time for Exif copying of 314 files is 204.98779892921448s
+
