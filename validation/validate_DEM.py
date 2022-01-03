@@ -262,6 +262,8 @@ isr_max = 24.542622
 isr_min = -22.41958
 avg_max = 24.41634
 avg_min = -14.85847
+pil_max = 24.781492
+pil_min = -14.546541
 
 def make_image(array,name,out,og_flag):
     new_arr = np.array(array)
@@ -275,6 +277,9 @@ def make_image(array,name,out,og_flag):
         elif dem_type == 'AVG':
             max_val = avg_max
             min_val = avg_min
+        elif dem_type == 'PIL':
+            max_val = pil_max
+            min_val = pil_min
     else:
         max_val = og_max
         min_val = og_min
@@ -296,6 +301,22 @@ def SSIM(img,img_noise,min_v,max_v):
                   data_range=max_v - min_v)
     return ssim_noise
 
+def mean_error(array1,array2):
+    error = 0
+    for x in range(len(array1)):
+        error = error+array1[x]-array2[x]
+
+    error = error/len(array1)
+    return error
+
+def mean_abs_error(array1,array2):
+    error = 0
+    for x in range(len(array1)):
+        error = error+abs(array1[x]-array2[x])
+
+    error = error/len(array1)
+    return error
+
 def validate_dems(dem1,dem2,dem_type):
     big_data,small_data = getdata(dem1,dem2)
     big_dem_data,big_dem_height,big_dem_width = big_data
@@ -309,9 +330,11 @@ def validate_dems(dem1,dem2,dem_type):
     if dem_type == 'SRGAN' or dem_type == 'AVG':
     # SRGAN or AVG
         x_dash,y_dash = 6,27
-    else:
+    elif dem_type == 'ISR':
     # ISR
         x_dash,y_dash = 2,5
+    elif dem_type == 'PIL':
+        x_dash,y_dash = 5,8
 
     # selector(big_image,4)
     # selector(big_image,4)
@@ -324,10 +347,15 @@ def validate_dems(dem1,dem2,dem_type):
     make_image(offseted,'OFFSET.png','',True)
     offset_img = cv2.imread('OFFSET.png')
     
-    # image_diff,diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
+    image_diff,diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
 
     flat_dem_1,flat_dem_2 = flat(big_dem_data,offseted,range_px)
+    me = mean_error(flat_dem_1,flat_dem_2)
+    print("ME:",me)
     
+    mae = mean_abs_error(flat_dem_1,flat_dem_2)
+    print("MAE:",mae)
+
     rmse = RMSE(flat_dem_1,flat_dem_2)
     print("RMSE:",rmse)
 
@@ -356,7 +384,7 @@ def validate_dems(dem1,dem2,dem_type):
     print("ORIGINAL")
     print(pd_2.describe().apply(lambda s: s.apply('{0:.5f}'.format))
 )
-    # cv2.imwrite('bracketed_save.png',image_diff)
+    cv2.imwrite('bracketed_save.png',image_diff)
 
 
 import sys
@@ -369,7 +397,9 @@ if int(dem_type) == 0:
     dem_type = 'SRGAN'
 elif int(dem_type) == 1:
     dem_type = 'ISR'
-else:
+elif int(dem_type)== 2:
     dem_type = 'AVG'
+else:
+    dem_type = 'PIL'
 
 validate_dems(dem1,dem2,dem_type)

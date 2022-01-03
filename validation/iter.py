@@ -5,18 +5,6 @@ from sklearn.preprocessing import normalize
 import math
 
 import sys
-args = sys.argv[1:]
-dem1 = args[0]
-dem2 = args[1]
-dem_type = args[2]
-if int(dem_type) == 0:
-    dem_type = 'SRGAN'
-elif int(dem_type) == 1:
-    dem_type = 'ISR'
-elif int(dem_type) == 2:
-    dem_type = 'AVG'
-else:
-    dem_type = 'TEST'
 
 def getdata(dem1_path,dem2_path):
     dem1_height,dem1_width = cv2.imread(dem1_path,-1).shape
@@ -199,6 +187,8 @@ isr_max = 24.542622
 isr_min = -22.41958
 avg_max = 24.323288
 avg_min = -9.751682
+pil_max = 24.781492
+pil_min = -14.546541
 
 def make_image(array,name,out,og_flag):
     new_arr = np.array(array)
@@ -212,6 +202,9 @@ def make_image(array,name,out,og_flag):
         elif dem_type == 'AVG':
             max_val = avg_max
             min_val = avg_min
+        elif dem_type == 'PIL':
+            max_val = pil_max
+            min_val = pil_min
     else:
         if dem_type == 'TEST':
             max_val = isr_max
@@ -257,14 +250,14 @@ def gen_data(dem1,dem2):
     savenpy(big_dem_data,'BIG_DEM')
     savenpy(small_dem_data,'SMALL_DEM')
 
-res = open('iter_op/{}/results.txt'.format(dem_type),'w+')
+
 from time import time
 def dem_metrics():
     big_dem_data = loadnpy('iter_op/{}/BIG_DEM.npy'.format(dem_type))
     small_dem_data = loadnpy('iter_op/{}/SMALL_DEM.npy'.format(dem_type))
     big_image = cv2.imread('iter_op/{}/BIG_DEM.png'.format(dem_type))
     big_dem_height,big_dem_width = big_dem_data.shape
-    for i in range(15,25,1):
+    for i in range(5,15,1):
         for j in range(0,10,1):
             start = time()
             offset = np.zeros((big_dem_height,big_dem_width))
@@ -292,11 +285,27 @@ def dem_metrics():
                 end = time()
                 print("{},{} PER ITER:{}".format(i,j,end-start))
 
+args = sys.argv[1:]
+dem1 = args[0]
+dem2 = args[1]
+dem_type = args[2]
+if int(dem_type) == 0:
+    dem_type = 'SRGAN'
+elif int(dem_type) == 1:
+    dem_type = 'ISR'
+elif int(dem_type) == 2:
+    dem_type = 'AVG'
+elif int(dem_type) == 3:
+    dem_type = 'PIL'
+else:
+    dem_type = 'TEST'
 
-gen_data(dem1,dem2)
-# dem_metrics()
+res = open('iter_op/{}/results.txt'.format(dem_type),'w+')
+# gen_data(dem1,dem2)
+dem_metrics()
 
 # SRGAN y:27 x:6
 # ISR y:5 x:2
 # AVG offset (SRGAN>ISR) (y:22 x:4)
 # AVG y:27 x:6 
+# PIL: y:8 x:5
