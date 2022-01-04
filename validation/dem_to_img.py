@@ -5,6 +5,7 @@ import numpy as np
 args = sys.argv[1:]
 
 dem_file = args[0]
+out_name = args[1]
 
 # Read DEM TIFF and save as basic grayscale image
 
@@ -19,4 +20,4 @@ def get_dem_image(dem1_path):
 
 dem_data = get_dem_image(dem_file)
 dem_data = np.array(dem_data).astype(np.int32)
-dem_image = cv2.imwrite('ISR_DEM.png',dem_data)
+dem_image = cv2.imwrite(out_name+'.png',dem_data)

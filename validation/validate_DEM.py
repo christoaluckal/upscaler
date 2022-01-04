@@ -384,7 +384,7 @@ def validate_dems(dem1,dem2,dem_type):
     print("ORIGINAL")
     print(pd_2.describe().apply(lambda s: s.apply('{0:.5f}'.format))
 )
-    cv2.imwrite('bracketed_save.png',image_diff)
+    cv2.imwrite('difference.png',image_diff)
 
 
 import sys

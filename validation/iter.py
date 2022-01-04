@@ -255,8 +255,8 @@ def dem_metrics():
     small_dem_data = loadnpy('iteration_testing/{}/SMALL_DEM.npy'.format(dem_type))
     big_image = cv2.imread('iteration_testing/{}/BIG_DEM.png'.format(dem_type))
     big_dem_height,big_dem_width = big_dem_data.shape
-    for i in range(0,50,5):
-        for j in range(0,50,5):
+    for i in range(y_start,y_end,y_step):
+        for j in range(x_start,x_end,x_step):
             start = time()
             offset = np.zeros((big_dem_height,big_dem_width))
             offseted = offset_data(small_dem_data,offset,i,j)
@@ -287,6 +287,7 @@ args = sys.argv[1:]
 dem1 = args[0]
 dem2 = args[1]
 dem_type = args[2]
+gen_flag = int(args[3])
 if int(dem_type) == 0:
     dem_type = 'SRGAN'
 elif int(dem_type) == 1:
@@ -298,9 +299,22 @@ elif int(dem_type) == 3:
 else:
     dem_type = 'TEST'
 
-res = open('iteration_testing/{}/results.txt'.format(dem_type),'w+')
-gen_data(dem1,dem2) # USE THIS FIRST BEFORE METRICS
-# dem_metrics()
+# Large Checking
+y_start,y_end,y_step = 0,50,5
+x_start,x_end,x_step = 0,50,5
+
+# Small Checking
+# Take the best (y,x) written in results.txt and subtract and add 5 to the ranges
+# For a best RMSE at 10,5
+# y_start,y_end,y_step = 5,15,1
+# x_start,x_end,x_step = 0,10,1
+
+
+if gen_flag:
+    gen_data(dem1,dem2) # USE THIS FIRST BEFORE METRICS
+else:
+    res = open('iteration_testing/{}/results.txt'.format(dem_type),'w+')
+    dem_metrics()
 
 # SRGAN y:27 x:6
 # ISR y:5 x:2

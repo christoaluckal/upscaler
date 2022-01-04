@@ -4,7 +4,7 @@ import cv2
 
 args = sys.argv[1:]
 folder = args[0]
-out_folder = args[1]
+# out_folder = args[1]
 
 keypoints = 0
 def sift(image,name):
@@ -15,14 +15,15 @@ def sift(image,name):
     kp = sift.detect(gray,None)
     keypoints+=len(kp)
     img=cv2.drawKeypoints(gray,kp,image)
-    cv2.imwrite(name[:-4]+'_new.jpg',img)
+    # cv2.imwrite(name[:-4]+'_new.jpg',img)
 
 
 img_list = [x for x in os.listdir(folder) if x.endswith('.jpg')]
 
 for x in img_list:
     image = cv2.imread(folder+'/'+x)
-    sift(image,out_folder+x)
+    # sift(image,out_folder+x)
+    sift(image)
 
 print(keypoints)
 

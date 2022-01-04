@@ -1,0 +1,58 @@
+Run the corner edge detection using
+    python3 corner_edge.py <image> <outfolder> <name>
+    eg. python3 corner_edge.py data/original/original_Ortho.png ./ original
+
+Run the image metrics using
+    python3 image_metrics.py <original img folder> <srgan img folder> <isr img folder> <pil img folder>
+    Output is saved as img_metrics.txt 
+    eg. python3 image_metrics.py all_images/original/ all_images/downscaled_upscaled_SRGAN/ all_images/downscaled_upscaled_ISR/ all_images/PIL_upscale/
+
+To run the iteration code make sure to make this tree structure is present in the current directory
+    -iteratiion_testing
+        -AVG
+        -PIL
+        -SRGAN
+        -ISR
+
+    python3 iter.py <DEM 1> <DEM 2> <type flag> <gen flag>
+    type flag: 0=SRGAN 1=ISR 2=AVG 3=PIL
+    gen flag: 1 = generate temp files 0 = run iterations
+    eg. python3 iter.py data/SRGAN/downscaled_upscaled_DEM.tif data/original/original_DEM.tif 0 1
+    and
+    eg. python3 iter.py data/SRGAN/downscaled_upscaled_DEM.tif data/original/original_DEM.tif 0 0
+
+To validate the generated dem use the validate_DEM.py
+    python3 validate_DEM.py <DEM 1> <DEM 2> <DEM type flag>
+    eg. python3 validate_DEM.py data/ISR/downscaled_upscaled_ISR_DEM.tif data/original/original_DEM.tif 1
+
+To run the merging dems code
+    python3 merge_DEM.py <DEM 1> <DEM 2> <out location>
+    eg. python3 merge_DEM.py data/SRGAN/downscaled_upscaled_DEM.tif data/ISR/downscaled_upscaled_ISR_DEM.tif ./
+
+For the SIFT code make sure that this structure is present in the directory
+    -IP_testing
+        -ISR,SRGAN,PIL
+            -corner_edge
+            -sift_results
+                -alt_parts
+                -og_parts
+                -match
+
+    Split the original Ortho and the Alt (Upscaled) Ortho using the split.py
+        python3 split.py <Ortho> <out folder> <original flag>
+        The third argument is the way the splits are saved. If its the original they are saved as og_Ortho_x_y_.jpg else alt_Ortho_x_y_.jpg
+        eg. python3 split.py data/original/original_Ortho.png IP_testing/ISR/sift_results/og_parts/ 1
+        eg. python3 split.py data/ISR/downscaled_upscaled_ISR_Ortho.png IP_testing/ISR/sift_results/og_parts/ 0
+
+    Once the split parts are generated, run the sift_match.py to generate the sift_matching results
+        python3 sift_match.py <original parts folder> <altered parts folder> <match output>
+        eg. python3 sift_match.py IP_testing/ISR/sift_results/og_parts/ IP_testing/ISR/sift_results/alt_parts/ IP_testing/ISR/sift_results/match/
+
+        The SIFT matching images will be saved in match along with the match_list.txt which stores the number of matching keypoints per image
+    
+    To count the total number of SIFT keypoints in all parts use the total_sift_keypoints.py
+        python3 total_sift_keypoints.py <parts folder>
+        eg. python3 total_sift_keypoints.py IP_testing/ISR/sift_results/og_parts/
+
+
+
