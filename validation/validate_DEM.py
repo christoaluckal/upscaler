@@ -2,6 +2,7 @@ from osgeo import gdal
 import numpy as np
 import cv2
 from sklearn.preprocessing import normalize
+import matplotlib.pyplot as plt
 import math
 
 def getdata(dem1_path,dem2_path):
@@ -136,7 +137,6 @@ def offset_data(og,dummy,y_off,x_off):
             
 #     return image,difference
 
-# BLUE-GREEN-RED
 def get_difference(array1,array2,height,width):
     image = np.zeros((height,width,3),dtype=np.int32)
     difference = np.zeros((height,width,1),dtype=np.float64)
@@ -146,29 +146,51 @@ def get_difference(array1,array2,height,width):
                 color = np.array([255,255,255])
                 difference[x][y] = 0
             else:
-                dif =  abs(array1[x][y]-array2[x][y])
-                if dif > 1:
-                    color = np.array([3,4,122])
-                elif dif > 0.75:
-                    color = np.array([5,47,208])
-                elif dif > 0.5:
-                    color = np.array([33,126,251])
-                elif dif > 0.2:
-                    color = np.array([58,207,238])
-                elif dif > 0.1:
-                    color = np.array([60,252,164])
-                elif dif > 0.075:
-                    color = np.array([152,242,50])
-                elif dif > 0.05:
-                    color = np.array([235,188,40])
-                elif dif > 0.02:
-                    color = np.array([227,107,70])
+                dif =  array1[x][y]-array2[x][y]
+                if dif > 0:
+                    color = np.array([255,0,0])
+                elif dif < 0:
+                    color = np.array([0,255,0])
                 else:
-                    color = np.array([59,18,48])
+                    color = np.array([0,0,255])
                 difference[x][y] = dif
             image[x][y]=color
             
     return image,difference
+
+# BLUE-GREEN-RED
+# def get_difference(array1,array2,height,width):
+#     image = np.zeros((height,width,3),dtype=np.int32)
+#     difference = np.zeros((height,width,1),dtype=np.float64)
+#     for x in range(height):
+#         for y in range(width):
+#             if(array1[x][y]== -32767 or array2[x][y] == -32767):
+#                 color = np.array([255,255,255])
+#                 difference[x][y] = 0
+#             else:
+#                 dif =  abs(array1[x][y]-array2[x][y])
+#                 if dif > 1:
+#                     color = np.array([3,4,122])
+#                 elif dif > 0.75:
+#                     color = np.array([5,47,208])
+#                 elif dif > 0.5:
+#                     color = np.array([33,126,251])
+#                 elif dif > 0.2:
+#                     color = np.array([58,207,238])
+#                 elif dif > 0.1:
+#                     color = np.array([60,252,164])
+#                 elif dif > 0.075:
+#                     color = np.array([152,242,50])
+#                 elif dif > 0.05:
+#                     color = np.array([235,188,40])
+#                 elif dif > 0.02:
+#                     color = np.array([227,107,70])
+#                 else:
+#                     color = np.array([59,18,48])
+#                 difference[x][y] = dif
+#             image[x][y]=color
+            
+#     return image,difference
 
 # GREEN-YELLOW-RED
 # def get_difference(array1,array2,height,width):
@@ -264,6 +286,8 @@ avg_max = 24.41634
 avg_min = -14.85847
 pil_max = 24.781492
 pil_min = -14.546541
+pil_f_max = 24.410984 
+pil_f_min = -21.677523
 
 def make_image(array,name,out,og_flag):
     new_arr = np.array(array)
@@ -280,6 +304,9 @@ def make_image(array,name,out,og_flag):
         elif dem_type == 'PIL':
             max_val = pil_max
             min_val = pil_min
+        elif dem_type == 'PIL_F':
+            max_val = pil_f_max
+            min_val = pil_f_min
     else:
         max_val = og_max
         min_val = og_min
@@ -326,6 +353,7 @@ def validate_dems(dem1,dem2,dem_type):
     big_image = cv2.imread('BIG_DEM.png')
     small_image = cv2.imread('SMALL_DEM.png')
     # x_dash,y_dash = tri_sel(small_image,big_image)
+    # print(x_dash,y_dash)
 
     if dem_type == 'SRGAN' or dem_type == 'AVG':
     # SRGAN or AVG
@@ -333,7 +361,7 @@ def validate_dems(dem1,dem2,dem_type):
     elif dem_type == 'ISR':
     # ISR
         x_dash,y_dash = 2,5
-    elif dem_type == 'PIL':
+    elif dem_type == 'PIL' or dem_type == 'PIL_F':
         x_dash,y_dash = 5,8
 
     # selector(big_image,4)
@@ -347,12 +375,19 @@ def validate_dems(dem1,dem2,dem_type):
     make_image(offseted,'OFFSET.png','',True)
     offset_img = cv2.imread('OFFSET.png')
     
-    image_diff,diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
+    # image_diff,diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
 
     flat_dem_1,flat_dem_2 = flat(big_dem_data,offseted,range_px)
+    print(np.max(flat_dem_1),np.min(flat_dem_1))
+    print(np.max(flat_dem_2),np.min(flat_dem_2))
+
+    a=np.histogram(np.array(flat_dem_1)-np.array(flat_dem_2), bins=10, range=None, normed=None, weights=None, density=None)
+    plt.hist(a, bins='auto')
+    plt.show()
+
     me = mean_error(flat_dem_1,flat_dem_2)
     print("ME:",me)
-    
+
     mae = mean_abs_error(flat_dem_1,flat_dem_2)
     print("MAE:",mae)
 
@@ -384,7 +419,7 @@ def validate_dems(dem1,dem2,dem_type):
     print("ORIGINAL")
     print(pd_2.describe().apply(lambda s: s.apply('{0:.5f}'.format))
 )
-    cv2.imwrite('difference.png',image_diff)
+    # cv2.imwrite('difference.png',image_diff)
 
 
 import sys
@@ -399,7 +434,9 @@ elif int(dem_type) == 1:
     dem_type = 'ISR'
 elif int(dem_type)== 2:
     dem_type = 'AVG'
-else:
+elif int(dem_type)==3:
     dem_type = 'PIL'
+else:
+    dem_type = 'PIL_F'
 
 validate_dems(dem1,dem2,dem_type)

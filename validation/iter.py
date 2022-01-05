@@ -177,6 +177,8 @@ avg_max = 24.323288
 avg_min = -9.751682
 pil_max = 24.781492
 pil_min = -14.546541
+pil_f_max = 24.410984 
+pil_f_min = -21.677523
 
 def make_image(array,name,out,og_flag):
     '''
@@ -196,6 +198,9 @@ def make_image(array,name,out,og_flag):
         elif dem_type == 'PIL':
             max_val = pil_max
             min_val = pil_min
+        elif dem_type == 'PIL_F':
+            max_val = pil_f_max
+            min_val = pil_f_min
     else:
         if dem_type == 'TEST':
             max_val = isr_max
@@ -296,12 +301,14 @@ elif int(dem_type) == 2:
     dem_type = 'AVG'
 elif int(dem_type) == 3:
     dem_type = 'PIL'
+elif int(dem_type) == 4:
+    dem_type = 'PIL_F'
 else:
-    dem_type = 'TEST'
+    dem_type = 'ISR_F'
 
 # Large Checking
-y_start,y_end,y_step = 0,50,5
-x_start,x_end,x_step = 0,50,5
+y_start,y_end,y_step = 0,10,1
+x_start,x_end,x_step = 0,10,1
 
 # Small Checking
 # Take the best (y,x) written in results.txt and subtract and add 5 to the ranges
@@ -310,7 +317,7 @@ x_start,x_end,x_step = 0,50,5
 # x_start,x_end,x_step = 0,10,1
 
 
-if gen_flag:
+if gen_flag==1:
     gen_data(dem1,dem2) # USE THIS FIRST BEFORE METRICS
 else:
     res = open('iteration_testing/{}/results.txt'.format(dem_type),'w+')
@@ -321,3 +328,4 @@ else:
 # AVG offset (SRGAN>ISR) (y:22 x:4)
 # AVG y:27 x:6 
 # PIL: y:8 x:5
+# PIL_F: y:8 x:5

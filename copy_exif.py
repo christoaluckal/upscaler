@@ -11,10 +11,12 @@ def copy_exif(exif_image_path,non_exif_image_path):
     img_1 = Image.open(exif_image_path)
     exif_dict_1 = piexif.load(img_1.info['exif'])
     # print(exif_dict_1['GPS'][piexif.ImageIFD.DateTime])
-    # print(exif_dict_1['GPS'])
+    # for x,y in exif_dict_1['Exif'].items():
+    #     print(x,y)
     img_2 = Image.open(non_exif_image_path)
     temp_gps = exif_dict_1['GPS']
-    exif_dict_2 = {"GPS":temp_gps}
+    temp_exif = exif_dict_1['Exif']
+    exif_dict_2 = {"GPS":temp_gps,"Exif":temp_exif}
     exif_2_bytes = piexif.dump(exif_dict_2)
     img_2.save(non_exif_image_path,exif=exif_2_bytes)
 
@@ -25,7 +27,6 @@ noexif_loc = args[1]
 import os
 exif_list = sorted([exif_loc+x for x in os.listdir(exif_loc)])
 noexif_list = sorted([noexif_loc+x for x in os.listdir(noexif_loc)])
-
 start = time.time()
 # count = 1
 for x,y in zip(exif_list,noexif_list):
