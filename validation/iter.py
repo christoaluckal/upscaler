@@ -167,18 +167,27 @@ def get_min(array):
     return min_t
 
 # Predefined values to speed up calculation
-srgan_max = 24.3338
-srgan_min = -16.420786
+
 og_max = 28.364176
 og_min = -21.73187
+
+srgan_max = 24.3338
+srgan_min = -16.420786
+srgan_f_max = 24.362696
+srgan_f_min = -29.01959
+
 isr_max = 24.542622
 isr_min = -22.41958
-avg_max = 24.323288
-avg_min = -9.751682
+isr_f_max = 24.612194
+isr_f_min = -16.995506
+
 pil_max = 24.781492
 pil_min = -14.546541
 pil_f_max = 24.410984 
 pil_f_min = -21.677523
+
+avg_max = 24.41634
+avg_min = -14.85847
 
 def make_image(array,name,out,og_flag):
     '''
@@ -186,7 +195,7 @@ def make_image(array,name,out,og_flag):
     '''
     new_arr = np.array(array)
     if og_flag == False:
-        if dem_type == 'SRGAN' or dem_type == 'TEST':
+        if dem_type == 'SRGAN':
             max_val = srgan_max
             min_val = srgan_min
         elif dem_type == 'ISR':
@@ -201,6 +210,12 @@ def make_image(array,name,out,og_flag):
         elif dem_type == 'PIL_F':
             max_val = pil_f_max
             min_val = pil_f_min
+        elif dem_type == 'ISR_F':
+            max_val = isr_f_max
+            min_val = isr_f_min
+        elif dem_type == 'SRGAN_F':
+            max_val = srgan_f_max
+            min_val = srgan_f_min
     else:
         if dem_type == 'TEST':
             max_val = isr_max
@@ -296,15 +311,17 @@ gen_flag = int(args[3])
 if int(dem_type) == 0:
     dem_type = 'SRGAN'
 elif int(dem_type) == 1:
-    dem_type = 'ISR'
+    dem_type = 'SRGAN_F'
 elif int(dem_type) == 2:
-    dem_type = 'AVG'
+    dem_type = 'ISR'
 elif int(dem_type) == 3:
-    dem_type = 'PIL'
+    dem_type = 'ISR_F'
 elif int(dem_type) == 4:
+    dem_type = 'PIL'
+elif int(dem_type)==5:
     dem_type = 'PIL_F'
 else:
-    dem_type = 'ISR_F'
+    dem_type = 'AVG_F'
 
 # Large Checking
 y_start,y_end,y_step = 0,10,1

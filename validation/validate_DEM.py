@@ -276,18 +276,26 @@ def get_min(array):
 
     return min_t
 
-srgan_max = 24.3338
-srgan_min = -16.420786
 og_max = 28.364176
 og_min = -21.73187
+
+srgan_max = 24.3338
+srgan_min = -16.420786
+srgan_f_max = 24.362696
+srgan_f_min = -29.01959
+
 isr_max = 24.542622
 isr_min = -22.41958
-avg_max = 24.41634
-avg_min = -14.85847
+isr_f_max = 24.612194
+isr_f_min = -16.995506
+
 pil_max = 24.781492
 pil_min = -14.546541
 pil_f_max = 24.410984 
 pil_f_min = -21.677523
+
+avg_max = 24.41634
+avg_min = -14.85847
 
 def make_image(array,name,out,og_flag):
     new_arr = np.array(array)
@@ -307,6 +315,12 @@ def make_image(array,name,out,og_flag):
         elif dem_type == 'PIL_F':
             max_val = pil_f_max
             min_val = pil_f_min
+        elif dem_type == 'ISR_F':
+            max_val = isr_f_max
+            min_val = isr_f_min
+        elif dem_type == 'SRGAN_F':
+            max_val = srgan_f_max
+            min_val = srgan_f_min
     else:
         max_val = og_max
         min_val = og_min
@@ -352,15 +366,17 @@ def validate_dems(dem1,dem2,dem_type):
     make_image(small_dem_data,'SMALL_DEM.png','',True)
     big_image = cv2.imread('BIG_DEM.png')
     small_image = cv2.imread('SMALL_DEM.png')
-    # x_dash,y_dash = tri_sel(small_image,big_image)
-    # print(x_dash,y_dash)
+    x_dash,y_dash = tri_sel(small_image,big_image)
+    print(x_dash,y_dash)
 
-    if dem_type == 'SRGAN' or dem_type == 'AVG':
+    if dem_type == 'SRGAN' or dem_type == 'AVG' or dem_type == 'SRGAN_F':
     # SRGAN or AVG
         x_dash,y_dash = 6,27
     elif dem_type == 'ISR':
     # ISR
         x_dash,y_dash = 2,5
+    elif dem_type == 'ISR_F':
+        x_dash,y_dash = 0,3
     elif dem_type == 'PIL' or dem_type == 'PIL_F':
         x_dash,y_dash = 5,8
 
@@ -375,15 +391,11 @@ def validate_dems(dem1,dem2,dem_type):
     make_image(offseted,'OFFSET.png','',True)
     offset_img = cv2.imread('OFFSET.png')
     
-    # image_diff,diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
+    image_diff,diff_array = get_difference(big_dem_data,offseted,big_dem_height,big_dem_width)
 
     flat_dem_1,flat_dem_2 = flat(big_dem_data,offseted,range_px)
     print(np.max(flat_dem_1),np.min(flat_dem_1))
     print(np.max(flat_dem_2),np.min(flat_dem_2))
-
-    a=np.histogram(np.array(flat_dem_1)-np.array(flat_dem_2), bins=10, range=None, normed=None, weights=None, density=None)
-    plt.hist(a, bins='auto')
-    plt.show()
 
     me = mean_error(flat_dem_1,flat_dem_2)
     print("ME:",me)
@@ -419,7 +431,7 @@ def validate_dems(dem1,dem2,dem_type):
     print("ORIGINAL")
     print(pd_2.describe().apply(lambda s: s.apply('{0:.5f}'.format))
 )
-    # cv2.imwrite('difference.png',image_diff)
+    cv2.imwrite('difference.png',image_diff)
 
 
 import sys
@@ -431,12 +443,16 @@ dem_type = args[2]
 if int(dem_type) == 0:
     dem_type = 'SRGAN'
 elif int(dem_type) == 1:
-    dem_type = 'ISR'
+    dem_type = 'SRGAN_F'
 elif int(dem_type)== 2:
-    dem_type = 'AVG'
+    dem_type = 'ISR'
 elif int(dem_type)==3:
+    dem_type = 'ISR_F'
+elif int(dem_type)==4:
     dem_type = 'PIL'
-else:
+elif int(dem_type)==5:
     dem_type = 'PIL_F'
+elif int(dem_type)==6:
+    dem_type = 'AVG'
 
 validate_dems(dem1,dem2,dem_type)
