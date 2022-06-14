@@ -106,21 +106,48 @@ def tri_sel(image1,image2):
     return (x_avg,y_avg)
 
 
-def offset_data(og,dummy,y_off,x_off):
-    '''
-    The smaller DEM is put into an array of the same size as the larger DEM and offseted by some x,y
-    '''
-    og_height,og_width = og.shape
-    d_height,d_width = dummy.shape
-    if og_height+y_off < d_height and og_width+x_off < d_width:
-        for y in range(og_height):
-            for x in range(og_width):
-                dummy[y+y_off][x+x_off] = og[y][x]
+# def offset_data(og,dummy,y_off,x_off):
+#     '''
+#     The smaller DEM is put into an array of the same size as the larger DEM and offseted by some x,y
+#     '''
+#     og_height,og_width = og.shape
+#     d_height,d_width = dummy.shape
+#     if og_height+y_off < d_height and og_width+x_off < d_width:
+#         for y in range(og_height):
+#             for x in range(og_width):
+#                 dummy[y+y_off][x+x_off] = og[y][x]
     
-        return dummy
-    else:
-        return None
+#         return dummy
+#     else:
+#         return None
 
+def offset_data(og,dummy,y_off,x_off):
+    if x_off >= 0:
+        og_height,og_width = og.shape
+        d_height,d_width = dummy.shape
+        if og_height+y_off < d_height and og_width+x_off < d_width:
+            for y in range(og_height):
+                for x in range(og_width):
+                    dummy[y+y_off][x+x_off] = og[y][x]
+            return dummy
+        else:
+            return None
+    else:
+        new_og = np.zeros(og.shape)
+        new_og_h,new_og_w = new_og.shape
+        for y in range(new_og_h):
+            for x in range(abs(x_off),new_og_w):
+                new_og[y][x]=og[y][x-abs(x_off)]
+        og_2=new_og
+        og_height,og_width = og_2.shape
+        d_height,d_width = dummy.shape
+        if og_height+y_off < d_height and og_width+x_off < d_width:
+            for y in range(og_height):
+                for x in range(og_width):
+                    dummy[y+y_off][x] = og_2[y][x]
+            return dummy
+        else:
+            return None
 
 
 def RMSE(array1,array2):
@@ -175,6 +202,8 @@ srgan_max = 24.3338
 srgan_min = -16.420786
 srgan_f_max = 24.362696
 srgan_f_min = -29.01959
+srgan_new_max = 24.51497
+srgan_new_min = -27.597979
 
 isr_max = 24.542622
 isr_min = -22.41958
@@ -190,9 +219,6 @@ avg_max = 24.41634
 avg_min = -14.85847
 
 def make_image(array,name,out,og_flag):
-    '''
-    Make a normalized image of the array. og_flag is for if the image is the original DEM and not a generated one
-    '''
     new_arr = np.array(array)
     if og_flag == False:
         if dem_type == 'SRGAN':
@@ -216,13 +242,12 @@ def make_image(array,name,out,og_flag):
         elif dem_type == 'SRGAN_F':
             max_val = srgan_f_max
             min_val = srgan_f_min
+        elif dem_type == 'NEW':
+            max_val = srgan_new_max
+            min_val = srgan_new_min
     else:
-        if dem_type == 'TEST':
-            max_val = isr_max
-            min_val = isr_min
-        else:
-            max_val = og_max
-            min_val = og_min
+        max_val = og_max
+        min_val = og_min
 
     height,width = new_arr.shape
     for x in range(height):
@@ -320,12 +345,14 @@ elif int(dem_type) == 4:
     dem_type = 'PIL'
 elif int(dem_type)==5:
     dem_type = 'PIL_F'
-else:
+elif int(dem_type)==6:
     dem_type = 'AVG_F'
+else:
+    dem_type = 'NEW'
 
 # Large Checking
-y_start,y_end,y_step = 0,10,1
-x_start,x_end,x_step = 0,10,1
+y_start,y_end,y_step = 15,25,1
+x_start,x_end,x_step = -10,10,1
 
 # Small Checking
 # Take the best (y,x) written in results.txt and subtract and add 5 to the ranges

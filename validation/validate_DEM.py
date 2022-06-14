@@ -97,13 +97,7 @@ def tri_sel(image1,image2):
     return (x_avg,y_avg)
 
 
-def offset_data(og,dummy,y_off,x_off):
-    og_height,og_width = og.shape
-    for y in range(og_height):
-        for x in range(og_width):
-            dummy[y+y_off][x+x_off] = og[y][x]
-    
-    return dummy
+
 
 # def normalize(x,min,max,a,b):
 #     norm = int(a+(b-a)*((x-min)/(max-min)))
@@ -283,6 +277,8 @@ srgan_max = 24.3338
 srgan_min = -16.420786
 srgan_f_max = 24.362696
 srgan_f_min = -29.01959
+srgan_new_max = 24.51497
+srgan_new_min = -27.597979
 
 isr_max = 24.542622
 isr_min = -22.41958
@@ -321,6 +317,9 @@ def make_image(array,name,out,og_flag):
         elif dem_type == 'SRGAN_F':
             max_val = srgan_f_max
             min_val = srgan_f_min
+        elif dem_type == 'NEW':
+            max_val = srgan_new_max
+            min_val = srgan_new_min
     else:
         max_val = og_max
         min_val = og_min
@@ -358,6 +357,26 @@ def mean_abs_error(array1,array2):
     error = error/len(array1)
     return error
 
+def offset_data(og,dummy,y_off,x_off):
+    if x_off >= 0:
+        og_height,og_width = og.shape
+        for y in range(og_height):
+            for x in range(og_width):
+                dummy[y+y_off][x+x_off] = og[y][x]
+    else:
+        new_og = np.zeros(og.shape)
+        new_og_h,new_og_w = new_og.shape
+        for y in range(new_og_h):
+            for x in range(abs(x_off),new_og_w):
+                new_og[y][x]=og[y][x-abs(x_off)]
+        og_2=new_og
+        og_height,og_width = og_2.shape
+        for y in range(og_height):
+            for x in range(og_width):
+                dummy[y+y_off][x] = og_2[y][x]
+    
+    return dummy
+
 def validate_dems(dem1,dem2,dem_type):
     big_data,small_data = getdata(dem1,dem2)
     big_dem_data,big_dem_height,big_dem_width = big_data
@@ -368,17 +387,18 @@ def validate_dems(dem1,dem2,dem_type):
     small_image = cv2.imread('SMALL_DEM.png')
     x_dash,y_dash = tri_sel(small_image,big_image)
     print(x_dash,y_dash)
+    # x_dash,y_dash = -5,20
 
-    if dem_type == 'SRGAN' or dem_type == 'AVG' or dem_type == 'SRGAN_F':
-    # SRGAN or AVG
-        x_dash,y_dash = 6,27
-    elif dem_type == 'ISR':
-    # ISR
-        x_dash,y_dash = 2,5
-    elif dem_type == 'ISR_F':
-        x_dash,y_dash = 0,3
-    elif dem_type == 'PIL' or dem_type == 'PIL_F':
-        x_dash,y_dash = 5,8
+    # if dem_type == 'SRGAN' or dem_type == 'AVG' or dem_type == 'SRGAN_F':
+    # # SRGAN or AVG
+    #     x_dash,y_dash = 6,27
+    # elif dem_type == 'ISR':
+    # # ISR
+    #     x_dash,y_dash = 2,5
+    # elif dem_type == 'ISR_F':
+    #     x_dash,y_dash = 0,3
+    # elif dem_type == 'PIL' or dem_type == 'PIL_F':
+    #     x_dash,y_dash = 5,8
 
     # selector(big_image,4)
     # selector(big_image,4)
@@ -454,5 +474,7 @@ elif int(dem_type)==5:
     dem_type = 'PIL_F'
 elif int(dem_type)==6:
     dem_type = 'AVG'
+elif int(dem_type)==7:
+    dem_type = 'NEW'
 
 validate_dems(dem1,dem2,dem_type)
