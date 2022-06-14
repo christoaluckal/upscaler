@@ -131,28 +131,6 @@ def tri_sel(image1,image2):
             
 #     return image,difference
 
-def get_difference(array1,array2,height,width):
-    image = np.zeros((height,width,3),dtype=np.int32)
-    difference = np.zeros((height,width,1),dtype=np.float64)
-    for x in range(height):
-        for y in range(width):
-            if(array1[x][y]== -32767 or array2[x][y] == -32767):
-                color = np.array([255,255,255])
-                difference[x][y] = 0
-            else:
-                dif =  array1[x][y]-array2[x][y]
-                if dif > 0:
-                    color = np.array([255,0,0])
-                elif dif < 0:
-                    color = np.array([0,255,0])
-                else:
-                    color = np.array([0,0,255])
-                difference[x][y] = dif
-            image[x][y]=color
-            
-    return image,difference
-
-# BLUE-GREEN-RED
 # def get_difference(array1,array2,height,width):
 #     image = np.zeros((height,width,3),dtype=np.int32)
 #     difference = np.zeros((height,width,1),dtype=np.float64)
@@ -162,29 +140,51 @@ def get_difference(array1,array2,height,width):
 #                 color = np.array([255,255,255])
 #                 difference[x][y] = 0
 #             else:
-#                 dif =  abs(array1[x][y]-array2[x][y])
-#                 if dif > 1:
-#                     color = np.array([3,4,122])
-#                 elif dif > 0.75:
-#                     color = np.array([5,47,208])
-#                 elif dif > 0.5:
-#                     color = np.array([33,126,251])
-#                 elif dif > 0.2:
-#                     color = np.array([58,207,238])
-#                 elif dif > 0.1:
-#                     color = np.array([60,252,164])
-#                 elif dif > 0.075:
-#                     color = np.array([152,242,50])
-#                 elif dif > 0.05:
-#                     color = np.array([235,188,40])
-#                 elif dif > 0.02:
-#                     color = np.array([227,107,70])
+#                 dif =  array1[x][y]-array2[x][y]
+#                 if dif > 0:
+#                     color = np.array([255,0,0])
+#                 elif dif < 0:
+#                     color = np.array([0,255,0])
 #                 else:
-#                     color = np.array([59,18,48])
+#                     color = np.array([0,0,255])
 #                 difference[x][y] = dif
 #             image[x][y]=color
             
 #     return image,difference
+
+# BLUE-GREEN-RED
+def get_difference(array1,array2,height,width):
+    image = np.zeros((height,width,3),dtype=np.int32)
+    difference = np.zeros((height,width,1),dtype=np.float64)
+    for x in range(height):
+        for y in range(width):
+            if(array1[x][y]== -32767 or array2[x][y] == -32767):
+                color = np.array([255,255,255])
+                difference[x][y] = 0
+            else:
+                dif =  abs(array1[x][y]-array2[x][y])
+                if dif > 1:
+                    color = np.array([3,4,122])
+                elif dif > 0.75:
+                    color = np.array([5,47,208])
+                elif dif > 0.5:
+                    color = np.array([33,126,251])
+                elif dif > 0.2:
+                    color = np.array([58,207,238])
+                elif dif > 0.1:
+                    color = np.array([60,252,164])
+                elif dif > 0.075:
+                    color = np.array([152,242,50])
+                elif dif > 0.05:
+                    color = np.array([235,188,40])
+                elif dif > 0.02:
+                    color = np.array([227,107,70])
+                else:
+                    color = np.array([59,18,48])
+                difference[x][y] = dif
+            image[x][y]=color
+            
+    return image,difference
 
 # GREEN-YELLOW-RED
 # def get_difference(array1,array2,height,width):
@@ -385,20 +385,20 @@ def validate_dems(dem1,dem2,dem_type):
     make_image(small_dem_data,'SMALL_DEM.png','',True)
     big_image = cv2.imread('BIG_DEM.png')
     small_image = cv2.imread('SMALL_DEM.png')
-    x_dash,y_dash = tri_sel(small_image,big_image)
-    print(x_dash,y_dash)
+    # x_dash,y_dash = tri_sel(small_image,big_image)
+    # print(x_dash,y_dash)
     # x_dash,y_dash = -5,20
 
-    # if dem_type == 'SRGAN' or dem_type == 'AVG' or dem_type == 'SRGAN_F':
-    # # SRGAN or AVG
-    #     x_dash,y_dash = 6,27
-    # elif dem_type == 'ISR':
-    # # ISR
-    #     x_dash,y_dash = 2,5
-    # elif dem_type == 'ISR_F':
-    #     x_dash,y_dash = 0,3
-    # elif dem_type == 'PIL' or dem_type == 'PIL_F':
-    #     x_dash,y_dash = 5,8
+    if dem_type == 'SRGAN' or dem_type == 'AVG' or dem_type == 'SRGAN_F':
+    # SRGAN or AVG
+        x_dash,y_dash = 6,27
+    elif dem_type == 'ISR':
+    # ISR
+        x_dash,y_dash = 2,5
+    elif dem_type == 'ISR_F':
+        x_dash,y_dash = 0,3
+    elif dem_type == 'PIL' or dem_type == 'PIL_F':
+        x_dash,y_dash = 5,8
 
     # selector(big_image,4)
     # selector(big_image,4)
