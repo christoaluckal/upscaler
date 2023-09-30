@@ -10,3 +10,18 @@ The motivation behind this code is to test if Orthomosaics,DEMs,DTMs generated t
 ### To DO ###
 1.  [X] Call the SRGAN code through a method and not a subprocess
 2.  Modify/Train the SRGAN model for custom images
+
+## Citation ###
+Check out the results here
+`
+@INPROCEEDINGS{9884486,
+  author={Turkar, Yash and Aluckal, Christo and De, Shaunak and Turkar, Varsha and Agarwadkar, Yogesh},
+  booktitle={IGARSS 2022 - 2022 IEEE International Geoscience and Remote Sensing Symposium}, 
+  title={Generative-Network Based Multimedia Super-Resolution for Uav Remote Sensing}, 
+  year={2022},
+  volume={},
+  number={},
+  pages={527-530},
+  doi={10.1109/IGARSS46834.2022.9884486}}
+
+`
